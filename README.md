@@ -44,28 +44,47 @@ A command-line tool built in **C++17** that encrypts and decrypts text files and
 
 ---
 
-## Build & Run
+## Getting Started
 
-### Option 1: Using g++ directly
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/VJaY-4/File-encryption-tool.git
+cd File-encryption-tool
+```
+
+### 2. Build the project
+
+#### Option A: Using g++ directly
 
 ```bash
 g++ -std=c++17 -Wall -Wextra -Wpedantic -o encrypt_tool main.cpp txt_crypt.cpp img_crypt.cpp utils.cpp
-./encrypt_tool
 ```
 
-### Option 2: Using CMake
+#### Option B: Using CMake
 
 ```bash
 cmake -S . -B build
 cmake --build build
-./build/encrypt_tool
 ```
 
-> **Windows note:** If using MSYS2/MinGW, specify the generator:
+> **Windows (MSYS2/MinGW):** Specify the generator:
 > ```bash
 > cmake -S . -B build -G "MinGW Makefiles"
 > cmake --build build
 > ```
+
+### 3. Run the tool
+
+```bash
+# If built with g++
+./encrypt_tool
+
+# If built with CMake
+./build/encrypt_tool
+```
+
+On Windows, use `encrypt_tool.exe` or `.\build\encrypt_tool.exe` instead.
 
 ---
 
