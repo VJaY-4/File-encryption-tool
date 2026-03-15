@@ -111,13 +111,52 @@ Enter encryption key: ****
 
 ## How It Works
 
-- **Text files** are encrypted using a simple XOR cipher — each byte is XOR'd with the corresponding byte of the key (repeating cyclically).
-- **Image files** go through two steps:
-  1. XOR cipher on every byte
-  2. Byte-position scrambling using a deterministic pseudo-random sequence derived from the key
-- Decryption reverses the process using the same key.
+### What is XOR Encryption?
 
-> **Note:** XOR encryption is a symmetric cipher — the same key is used for both encryption and decryption. This tool is intended for learning purposes and is not suitable for securing sensitive data.
+XOR (Exclusive OR) is a fundamental bitwise operation in computer science. It compares two bits and returns `1` if they are different, `0` if they are the same:
+
+| A | B | A XOR B |
+|---|---|---------|
+| 0 | 0 |    0    |
+| 0 | 1 |    1    |
+| 1 | 0 |    1    |
+| 1 | 1 |    0    |
+
+The key property that makes XOR useful for encryption is that **it is its own inverse**:
+
+```
+Data XOR Key = Encrypted Data
+Encrypted Data XOR Key = Original Data
+```
+
+This means the same operation (and the same key) is used for both encryption and decryption, making it a **symmetric cipher**.
+
+### Why XOR Matters
+
+- **Foundation of modern cryptography** — XOR is a core building block used inside industry-standard algorithms like AES, DES, and ChaCha20. Understanding XOR encryption gives insight into how real-world encryption works at the bit level.
+- **Perfect secrecy (in theory)** — When used with a truly random key that is as long as the message and never reused, XOR encryption becomes the **One-Time Pad**, which is mathematically proven to be unbreakable. This is the only cipher with a formal proof of perfect secrecy.
+- **Simplicity and speed** — XOR operates directly on bits, making it extremely fast. It requires no complex math — just a single CPU instruction per byte.
+- **Reversibility** — The self-inverting property (`A XOR B XOR B = A`) makes implementation straightforward with no need for separate encrypt/decrypt logic.
+
+### How This Tool Uses XOR
+
+**Text files** — Each byte of the file is XOR'd with the corresponding byte of the key. The key repeats cyclically if it is shorter than the file:
+
+```
+File bytes:    H   e   l   l   o
+Key bytes:     k   e   y   k   e   (key "key" repeats)
+Result:        XOR of each pair → encrypted bytes
+```
+
+**Image files** — Encryption is applied in two layers for stronger obfuscation:
+1. **XOR cipher** on every byte of the raw image data
+2. **Byte-position scrambling** — bytes are rearranged using a deterministic pseudo-random sequence seeded from the key, making the image visually unrecognizable
+
+Decryption reverses both steps using the same key.
+
+### Limitations
+
+> **Note:** While XOR is the foundation of strong encryption, using it alone with a short, repeating key (as this tool does) is **not cryptographically secure**. Patterns in the original data can leak through, and the key can be recovered through frequency analysis. This tool is intended as a **learning project** to demonstrate encryption concepts — not for protecting sensitive data. For real-world security, use established libraries like OpenSSL or libsodium.
 
 ---
 
