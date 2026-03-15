@@ -6,13 +6,32 @@ A command-line tool built in **C++17** that encrypts and decrypts text files and
 
 ## Features
 
-- **Text file encryption/decryption** — encrypt existing `.txt` files or type content directly into the tool
-- **Image file encryption/decryption** — supports `.jpg`, `.jpeg`, and `.png` files
-- **Double-layer image encryption** — XOR cipher + byte-position scrambling
-- **Masked key input** — keys are hidden with `*` characters while typing
-- **Key strength validation** — warns if the encryption key is shorter than 4 characters
-- **Overwrite protection** — prompts before overwriting existing output files
-- **Organized file structure** — automatically creates separate folders for input, encrypted, and decrypted files
+### Text File Encryption & Decryption
+Encrypt and decrypt `.txt` files using XOR cipher. You can either **select an existing file** from the `Input Files/` folder (or provide a full path), or **create a new file** by typing content directly into the tool. Encrypted files are saved to `Encrypted Files/Text Files/`, and decrypted output goes to `Decrypted Files/Text Files/`. During decryption, the tool also displays the decrypted content in the terminal.
+
+### Image File Encryption & Decryption
+Encrypt and decrypt image files in `.jpg`, `.jpeg`, and `.png` formats. Images can be loaded from the `Input Files/` folder or by entering a full file path. Encrypted images are saved with a `.enc` tag in the filename (e.g., `photo.enc.jpg`) to `Encrypted Files/Images/`, and decrypted images are restored to `Decrypted Files/Images/`.
+
+### Double-Layer Image Encryption
+Image files go through two encryption steps for stronger obfuscation. First, every byte is XOR'd with the key (same as text encryption). Then, the byte positions are scrambled using a deterministic pseudo-random sequence seeded from the key. This makes the encrypted image visually unrecognizable — not just garbled text, but a completely jumbled image. Decryption reverses both steps in the correct order.
+
+### Masked Key Input
+When you type an encryption or decryption key, the characters are **hidden and replaced with `*`** on screen — similar to a password field. This prevents anyone nearby from seeing your key. Backspace is supported for corrections. The masking uses `_getch()` on Windows and terminal echo control on Unix systems.
+
+### Key Strength Validation
+If you enter a key shorter than 4 characters, the tool displays a warning explaining that short keys are easy to break. You are then asked to confirm whether to proceed or cancel and use a longer key. This encourages stronger encryption without forcing a strict requirement.
+
+### Overwrite Protection
+Before saving any encrypted or decrypted file, the tool checks if a file with the same name already exists in the output folder. If it does, you are prompted with `Overwrite? (y/n)` before anything is written. This prevents accidental loss of previously encrypted or decrypted files.
+
+### Organized File Structure
+The tool automatically creates the required folder structure on startup if it doesn't already exist. Files are organized into clearly separated directories — `Input Files/` for source files, `Encrypted Files/` for encrypted output (with subfolders for text and images), and `Decrypted Files/` for decrypted output (also with subfolders). This keeps your project directory clean and organized.
+
+### Flexible File Input
+For every operation, you have two ways to specify a file: enter the **full file path** anywhere on your system, or just enter the **filename** and the tool will look for it in the appropriate folder (`Input Files/` for encryption, `Encrypted Files/` for decryption). The tool also lists available encrypted files before decryption so you can see what's ready to decrypt.
+
+### Error Handling
+All operations are wrapped in exception handling. Invalid inputs, missing files, empty files, write failures, and bad menu choices are all caught and reported with clear `[ERROR]` messages. The program never crashes — it simply displays the error and returns to the main menu.
 
 ---
 
