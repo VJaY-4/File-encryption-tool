@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_executable(encrypt_tool main.cpp txt_crypt.cpp img_crypt.cpp)
+add_executable(encrypt_tool main.cpp txt_crypt.cpp img_crypt.cpp utils.cpp)
 
 # Enable stricter warnings
 if(MSVC)

@@ -5,6 +5,7 @@
 
 #include "txt_crypt.h"
 #include "img_crypt.h"
+#include "utils.h"
 
 #include <iostream>
 #include <filesystem>
