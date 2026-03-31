@@ -1,49 +1,53 @@
 # File Encryption & Decryption Tool
 
-A command-line tool built in **C++17** that encrypts and decrypts text files and images using the **XOR cipher**. Image encryption includes an additional byte-scrambling layer for extra obfuscation.
+A **C++17** application that encrypts and decrypts text files and images using the **XOR cipher**. Features both a **GUI** (Dear ImGui) and a **command-line interface**. Image encryption includes an additional byte-scrambling layer for extra obfuscation.
 
 ---
 
 ## Features
 
+### GUI Application
+A clean, minimalistic graphical interface built with **Dear ImGui + GLFW + OpenGL 3.3**. White and black theme with floating particle animations, smooth page transitions, and native file dialogs. Encrypt or decrypt files with just a few clicks — no terminal required.
+
+### Command-Line Interface
+The original terminal-based interface with interactive menus, masked key input, and colored output. Ideal for scripting or quick operations.
+
 ### Text File Encryption & Decryption
-Encrypt and decrypt `.txt` files using XOR cipher. You can either **select an existing file** from the `Input Files/` folder (or provide a full path), or **create a new file** by typing content directly into the tool. Encrypted files are saved to `Encrypted Files/Text Files/`, and decrypted output goes to `Decrypted Files/Text Files/`. During decryption, the tool also displays the decrypted content in the terminal.
+Encrypt and decrypt `.txt` files using XOR cipher. You can either **select an existing file** or **create a new file** by typing content directly. Encrypted files are saved to `Encrypted Files/Text Files/`, and decrypted output goes to `Decrypted Files/Text Files/`.
 
 ### Image File Encryption & Decryption
-Encrypt and decrypt image files in `.jpg`, `.jpeg`, and `.png` formats. Images can be loaded from the `Input Files/` folder or by entering a full file path. Encrypted images are saved with a `.enc` tag in the filename (e.g., `photo.enc.jpg`) to `Encrypted Files/Images/`, and decrypted images are restored to `Decrypted Files/Images/`.
+Encrypt and decrypt image files in `.jpg`, `.jpeg`, and `.png` formats. Encrypted images are saved with a `.enc` tag in the filename to `Encrypted Files/Images/`, and decrypted images are restored to `Decrypted Files/Images/`.
 
 ### Double-Layer Image Encryption
-Image files go through two encryption steps for stronger obfuscation. First, every byte is XOR'd with the key (same as text encryption). Then, the byte positions are scrambled using a deterministic pseudo-random sequence seeded from the key. This makes the encrypted image visually unrecognizable — not just garbled text, but a completely jumbled image. Decryption reverses both steps in the correct order.
-
-### Masked Key Input
-When you type an encryption or decryption key, the characters are **hidden and replaced with `*`** on screen — similar to a password field. This prevents anyone nearby from seeing your key. Backspace is supported for corrections. The masking uses `_getch()` on Windows and terminal echo control on Unix systems.
+Image files go through two encryption steps. First, every byte is XOR'd with the key. Then, byte positions are scrambled using a deterministic pseudo-random sequence seeded from the key, making the encrypted image visually unrecognizable. Decryption reverses both steps.
 
 ### Key Strength Validation
-If you enter a key shorter than 4 characters, the tool displays a warning explaining that short keys are easy to break. You are then asked to confirm whether to proceed or cancel and use a longer key. This encourages stronger encryption without forcing a strict requirement.
+Short keys (< 4 characters) trigger a warning. You can choose to proceed or use a stronger key.
 
 ### Overwrite Protection
-Before saving any encrypted or decrypted file, the tool checks if a file with the same name already exists in the output folder. If it does, you are prompted with `Overwrite? (y/n)` before anything is written. This prevents accidental loss of previously encrypted or decrypted files.
+The tool checks for existing files before saving and prompts before overwriting.
 
 ### Organized File Structure
-The tool automatically creates the required folder structure on startup if it doesn't already exist. Files are organized into clearly separated directories — `Input Files/` for source files, `Encrypted Files/` for encrypted output (with subfolders for text and images), and `Decrypted Files/` for decrypted output (also with subfolders). This keeps your project directory clean and organized.
-
-### Flexible File Input
-For every operation, you have two ways to specify a file: enter the **full file path** anywhere on your system, or just enter the **filename** and the tool will look for it in the appropriate folder (`Input Files/` for encryption, `Encrypted Files/` for decryption). The tool also lists available encrypted files before decryption so you can see what's ready to decrypt.
-
-### Error Handling
-All operations are wrapped in exception handling. Invalid inputs, missing files, empty files, write failures, and bad menu choices are all caught and reported with clear `[ERROR]` messages. The program never crashes — it simply displays the error and returns to the main menu.
+Required folders are created automatically on startup: `Input Files/`, `Encrypted Files/`, and `Decrypted Files/` with subfolders for text and images.
 
 ---
 
 ## Project Structure
 
 ```
-├── main.cpp          # Entry point and menu system
-├── txt_crypt.cpp/h   # Text file encryption & decryption
-├── img_crypt.cpp/h   # Image file encryption & decryption
-├── utils.cpp/h       # Shared utilities (XOR cipher, key input, etc.)
-├── CMakeLists.txt    # CMake build configuration
+├── gui_main.cpp        # GUI application (Dear ImGui)
+├── crypto_core.cpp/h   # Non-interactive encryption API (used by GUI)
+├── main.cpp            # CLI entry point and menu system
+├── txt_crypt.cpp/h     # Text file encryption & decryption
+├── img_crypt.cpp/h     # Image file encryption & decryption
+├── utils.cpp/h         # Shared utilities (XOR cipher, key input, etc.)
+├── CMakeLists.txt      # CMake build config (builds both CLI & GUI)
 ├── .gitignore
+│
+├── libs/
+│   ├── imgui/          # Dear ImGui (immediate-mode GUI)
+│   ├── glfw/           # GLFW (windowing & input)
+│   └── tinyfiledialogs/ # Native OS file dialogs
 │
 ├── Input Files/           # Place files here to encrypt
 ├── Encrypted Files/
@@ -59,7 +63,8 @@ All operations are wrapped in exception handling. Invalid inputs, missing files,
 ## Prerequisites
 
 - A C++17 compatible compiler (GCC, Clang, or MSVC)
-- [CMake](https://cmake.org/) 3.16+ *(optional — you can compile manually)*
+- [CMake](https://cmake.org/) 3.16+
+- OpenGL 3.3 capable GPU (for the GUI)
 
 ---
 
@@ -74,127 +79,94 @@ cd File-encryption-tool
 
 ### 2. Build the project
 
-#### Option A: Using g++ directly
-
-```bash
-g++ -std=c++17 -Wall -Wextra -Wpedantic -o encrypt_tool main.cpp txt_crypt.cpp img_crypt.cpp utils.cpp
-```
-
-#### Option B: Using CMake
+#### Using CMake (builds both CLI and GUI)
 
 ```bash
 cmake -S . -B build
 cmake --build build
 ```
 
-> **Windows (MSYS2/MinGW):** Specify the generator:
+> **Windows (MSYS2/MinGW):**
 > ```bash
 > cmake -S . -B build -G "MinGW Makefiles"
 > cmake --build build
 > ```
 
-### 3. Run the tool
+This produces two executables:
+- **encrypt_tool** — Command-line interface
+- **encrypt_tool_gui** — Graphical interface
+
+#### CLI only (no CMake needed)
 
 ```bash
-# If built with g++
-./encrypt_tool
+g++ -std=c++17 -Wall -Wextra -Wpedantic -o encrypt_tool main.cpp txt_crypt.cpp img_crypt.cpp utils.cpp
+```
 
-# If built with CMake
+### 3. Run
+
+```bash
+# GUI
+./build/encrypt_tool_gui
+
+# CLI
 ./build/encrypt_tool
 ```
 
-On Windows, use `encrypt_tool.exe` or `.\build\encrypt_tool.exe` instead.
+On Windows, use `.exe` extensions: `encrypt_tool_gui.exe` / `encrypt_tool.exe`.
 
 ---
 
 ## Usage
 
-1. Run the executable
+### GUI
+1. Launch `encrypt_tool_gui`
+2. Click **Encrypt** or **Decrypt** on the home screen
+3. Select file type (Text or Image)
+4. Browse for a file or type new content
+5. Enter an encryption key
+6. Click the action button — output is saved to the corresponding folder
+
+### CLI
+1. Run `encrypt_tool`
 2. Choose **Encrypt** or **Decrypt** from the menu
 3. Select the file type (Text or Image)
-4. Provide the file (enter a path or place it in the `Input Files/` folder)
+4. Provide the file (enter a path or place it in `Input Files/`)
 5. Enter an encryption key (input is masked)
-6. The output is saved to the corresponding folder
-
-### Example
-
-```
-+================================================+
-|    XOR Cipher File Encryption / Decryption     |
-+================================================+
-
---- Menu ---
-  1. Encrypt
-  2. Decrypt
-  3. Exit
-Choice: 1
-
---- File Type ---
-  1. Text File
-  2. Image File (.jpg/.png)
-Choice: 1
-
---- Source ---
-  1. Create a new file (type content)
-  2. Select an existing file
-Choice: 2
-
-Enter filename (e.g., test1.txt): myfile.txt
-Enter encryption key: ****
-
-[SUCCESS] Saved to: Encrypted Files/Text Files/myfile.txt
-```
+6. Output is saved to the corresponding folder
 
 ---
 
 ## How It Works
 
-### What is XOR Encryption?
+### XOR Encryption
 
-XOR (Exclusive OR) is a fundamental bitwise operation in computer science. It compares two bits and returns `1` if they are different, `0` if they are the same:
-
-| A | B | A XOR B |
-|---|---|---------|
-| 0 | 0 |    0    |
-| 0 | 1 |    1    |
-| 1 | 0 |    1    |
-| 1 | 1 |    0    |
-
-The key property that makes XOR useful for encryption is that **it is its own inverse**:
+XOR (Exclusive OR) is a bitwise operation where the same operation and key are used for both encryption and decryption:
 
 ```
 Data XOR Key = Encrypted Data
 Encrypted Data XOR Key = Original Data
 ```
 
-This means the same operation (and the same key) is used for both encryption and decryption, making it a **symmetric cipher**.
+**Text files** — Each byte is XOR'd with the corresponding byte of the key (key repeats cyclically).
 
-### Why XOR Matters
-
-- **Foundation of modern cryptography** — XOR is a core building block used inside industry-standard algorithms like AES, DES, and ChaCha20. Understanding XOR encryption gives insight into how real-world encryption works at the bit level.
-- **Perfect secrecy (in theory)** — When used with a truly random key that is as long as the message and never reused, XOR encryption becomes the **One-Time Pad**, which is mathematically proven to be unbreakable. This is the only cipher with a formal proof of perfect secrecy.
-- **Simplicity and speed** — XOR operates directly on bits, making it extremely fast. It requires no complex math — just a single CPU instruction per byte.
-- **Reversibility** — The self-inverting property (`A XOR B XOR B = A`) makes implementation straightforward with no need for separate encrypt/decrypt logic.
-
-### How This Tool Uses XOR
-
-**Text files** — Each byte of the file is XOR'd with the corresponding byte of the key. The key repeats cyclically if it is shorter than the file:
-
-```
-File bytes:    H   e   l   l   o
-Key bytes:     k   e   y   k   e   (key "key" repeats)
-Result:        XOR of each pair → encrypted bytes
-```
-
-**Image files** — Encryption is applied in two layers for stronger obfuscation:
-1. **XOR cipher** on every byte of the raw image data
-2. **Byte-position scrambling** — bytes are rearranged using a deterministic pseudo-random sequence seeded from the key, making the image visually unrecognizable
-
-Decryption reverses both steps using the same key.
+**Image files** — Two layers:
+1. XOR cipher on every byte of raw image data
+2. Byte-position scrambling using a deterministic pseudo-random sequence seeded from the key
 
 ### Limitations
 
-> **Note:** While XOR is the foundation of strong encryption, using it alone with a short, repeating key (as this tool does) is **not cryptographically secure**. Patterns in the original data can leak through, and the key can be recovered through frequency analysis. This tool is intended as a **learning project** to demonstrate encryption concepts — not for protecting sensitive data. For real-world security, use established libraries like OpenSSL or libsodium.
+> **Note:** XOR with a short, repeating key is **not cryptographically secure**. This tool is a **learning project** to demonstrate encryption concepts — not for protecting sensitive data. For real-world security, use established libraries like OpenSSL or libsodium.
+
+---
+
+## Tech Stack
+
+- **C++17** — Core language
+- **Dear ImGui** — Immediate-mode GUI framework
+- **GLFW** — Windowing and input
+- **OpenGL 3.3** — Rendering backend
+- **tinyfiledialogs** — Native OS file dialogs
+- **CMake** — Build system
 
 ---
 
