@@ -14,13 +14,20 @@
 using namespace std;
 namespace fs = filesystem;
 
+static int readInt() {
+    int v;
+    if (!(cin >> v)) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        return -1;
+    }
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    return v;
+}
+
 int main() {
-    // Show the program title when it starts.
-    // Also create the output folder right away so it is ready to use.
     cout << "+================================================+\n"
-         << "+================================================+\n"
          << "|    XOR Cipher File Encryption / Decryption     |\n"
-         << "+================================================+\n"
          << "+================================================+\n";
 
     try {
@@ -29,70 +36,33 @@ int main() {
         fs::create_directories(DEC_TEXT_DIR);
         fs::create_directories(DEC_IMG_DIR);
         fs::create_directories(INPUT_DIR);
-    }
-    catch (const fs::filesystem_error& e) {
+    } catch (const fs::filesystem_error& e) {
         cerr << "Warning: " << e.what() << "\n";
     }
 
-    // Keep showing the menu until the user picks Exit.
-    // Errors are caught and printed so the program does not crash (CO5).
-    int choice = 0;
     while (true) {
-        cout << "\n--- Menu ---\n"
-             << "  1. Encrypt\n  2. Decrypt\n  3. Exit\nChoice: ";
+        cout << "\n--- Menu ---\n  1. Encrypt\n  2. Decrypt\n  3. Exit\nChoice: ";
+        int choice = readInt();
+        if (choice == -1) { cout << "[ERROR] Enter 1, 2, or 3.\n"; continue; }
 
-        // Check that the user typed a number, not letters or symbols.
-        // If the input is bad, clear it and ask again.
-        if (!(cin >> choice)) {
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cout << "[ERROR] Enter 1, 2, or 3.\n";
-            continue;
-        }
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
-        // Run the chosen action and catch any errors (CO5: exception handling).
-        // If something goes wrong, print the error and go back to the menu.
         try {
-            switch (choice) {
-                case 1: {
-                    cout << "\n--- File Type ---\n"
-                         << "  1. Text File\n"
-                         << "  2. Image File (.jpg/.png)\n"
-                         << "Choice: ";
-                    int type;
-                    if (!(cin >> type)) {
-                        cin.clear();
-                        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                        cout << "[ERROR] Enter 1 or 2.\n";
-                        break;
-                    }
-                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            if (choice == 1 || choice == 2) {
+                cout << "\n--- File Type ---\n  1. Text File\n  2. Image File (.jpg/.png)\nChoice: ";
+                int type = readInt();
+                if (type == -1) { cout << "[ERROR] Enter 1 or 2.\n"; continue; }
+                if (choice == 1) {
                     if (type == 1) encryptFile();
                     else if (type == 2) encryptImage();
                     else cout << "[ERROR] Enter 1 or 2.\n";
-                    break;
-                }
-                case 2: {
-                    cout << "\n--- File Type ---\n"
-                         << "  1. Text File\n"
-                         << "  2. Image File (.jpg/.png)\n"
-                         << "Choice: ";
-                    int type;
-                    if (!(cin >> type)) {
-                        cin.clear();
-                        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                        cout << "[ERROR] Enter 1 or 2.\n";
-                        break;
-                    }
-                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                } else {
                     if (type == 1) decryptFile();
                     else if (type == 2) decryptImage();
                     else cout << "[ERROR] Enter 1 or 2.\n";
-                    break;
                 }
-                case 3: cout << "\nGoodbye!\n"; return 0;
-                default: cout << "[ERROR] Enter 1, 2, or 3.\n";
+            } else if (choice == 3) {
+                cout << "\nGoodbye!\n"; return 0;
+            } else {
+                cout << "[ERROR] Enter 1, 2, or 3.\n";
             }
         } catch (const exception& e) {
             cerr << "\n[ERROR] " << e.what() << "\n";

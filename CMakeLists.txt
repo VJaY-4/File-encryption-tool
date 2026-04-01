@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # ── Original CLI tool (unchanged) ────────────────────────────────
-add_executable(encrypt_tool main.cpp txt_crypt.cpp img_crypt.cpp utils.cpp)
+add_executable(encrypt_tool main.cpp crypto_core.cpp txt_crypt.cpp img_crypt.cpp utils.cpp)
 
 if(MSVC)
     target_compile_options(encrypt_tool PRIVATE /W4 /WX)
