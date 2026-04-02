@@ -5,6 +5,11 @@
 #include <stdexcept>
 #include <algorithm>
 
+#ifdef _WIN32
+#include <windows.h>
+#include <bcrypt.h>
+#endif
+
 namespace fs = std::filesystem;
 
 const std::string ENC_TEXT_DIR = "Encrypted Files/Text Files";
@@ -79,65 +84,225 @@ static void writeBinaryFile(const std::string& path, const std::vector<char>& bu
     if (out.fail()) throw std::runtime_error("Write error: " + path);
 }
 
+// ── AES-256-CBC via Windows BCrypt ──────────────────────────────────
+#ifdef _WIN32
+
+static std::vector<unsigned char> deriveKey256(const std::string& password) {
+    BCRYPT_ALG_HANDLE hAlg = nullptr;
+    BCRYPT_HASH_HANDLE hHash = nullptr;
+    std::vector<unsigned char> hash(32);
+
+    if (BCryptOpenAlgorithmProvider(&hAlg, BCRYPT_SHA256_ALGORITHM, nullptr, 0) != 0)
+        throw std::runtime_error("Failed to init SHA-256.");
+    if (BCryptCreateHash(hAlg, &hHash, nullptr, 0, nullptr, 0, 0) != 0) {
+        BCryptCloseAlgorithmProvider(hAlg, 0);
+        throw std::runtime_error("Failed to create hash.");
+    }
+    BCryptHashData(hHash, (PUCHAR)password.data(), (ULONG)password.size(), 0);
+    BCryptFinishHash(hHash, hash.data(), 32, 0);
+    BCryptDestroyHash(hHash);
+    BCryptCloseAlgorithmProvider(hAlg, 0);
+    return hash;
+}
+
+static std::vector<char> aesEncryptBuffer(const std::vector<char>& plain, const std::string& key) {
+    auto dk = deriveKey256(key);
+
+    BCRYPT_ALG_HANDLE hAlg = nullptr;
+    BCryptOpenAlgorithmProvider(&hAlg, BCRYPT_AES_ALGORITHM, nullptr, 0);
+
+    BCRYPT_KEY_HANDLE hKey = nullptr;
+    BCryptGenerateSymmetricKey(hAlg, &hKey, nullptr, 0, dk.data(), 32, 0);
+
+    unsigned char iv[16];
+    BCryptGenRandom(nullptr, iv, 16, BCRYPT_USE_SYSTEM_PREFERRED_RNG);
+    unsigned char ivCopy[16];
+    memcpy(ivCopy, iv, 16);
+
+    ULONG cbOut = 0;
+    BCryptEncrypt(hKey, (PUCHAR)plain.data(), (ULONG)plain.size(),
+                  nullptr, ivCopy, 16, nullptr, 0, &cbOut, BCRYPT_BLOCK_PADDING);
+
+    memcpy(ivCopy, iv, 16);
+    std::vector<unsigned char> cipher(cbOut);
+    NTSTATUS st = BCryptEncrypt(hKey, (PUCHAR)plain.data(), (ULONG)plain.size(),
+                                nullptr, ivCopy, 16, cipher.data(), cbOut, &cbOut, BCRYPT_BLOCK_PADDING);
+    BCryptDestroyKey(hKey);
+    BCryptCloseAlgorithmProvider(hAlg, 0);
+    if (st != 0) throw std::runtime_error("AES encryption failed.");
+
+    // Output: "AES\0" (4) + IV (16) + ciphertext
+    std::vector<char> result;
+    result.reserve(4 + 16 + cbOut);
+    result.push_back('A'); result.push_back('E'); result.push_back('S'); result.push_back('\0');
+    result.insert(result.end(), reinterpret_cast<char*>(iv), reinterpret_cast<char*>(iv) + 16);
+    result.insert(result.end(), reinterpret_cast<char*>(cipher.data()),
+                  reinterpret_cast<char*>(cipher.data()) + cbOut);
+    return result;
+}
+
+static std::vector<char> aesDecryptBuffer(const std::vector<char>& data, const std::string& key) {
+    if (data.size() < 20 || data[0] != 'A' || data[1] != 'E' || data[2] != 'S' || data[3] != '\0')
+        throw std::runtime_error("Not a valid AES-encrypted file.");
+
+    auto dk = deriveKey256(key);
+    unsigned char iv[16];
+    memcpy(iv, data.data() + 4, 16);
+
+    BCRYPT_ALG_HANDLE hAlg = nullptr;
+    BCryptOpenAlgorithmProvider(&hAlg, BCRYPT_AES_ALGORITHM, nullptr, 0);
+
+    BCRYPT_KEY_HANDLE hKey = nullptr;
+    BCryptGenerateSymmetricKey(hAlg, &hKey, nullptr, 0, dk.data(), 32, 0);
+
+    const unsigned char* cipherData = reinterpret_cast<const unsigned char*>(data.data()) + 20;
+    ULONG cipherLen = static_cast<ULONG>(data.size() - 20);
+
+    ULONG cbOut = 0;
+    unsigned char ivCopy[16];
+    memcpy(ivCopy, iv, 16);
+    BCryptDecrypt(hKey, const_cast<PUCHAR>(cipherData), cipherLen,
+                  nullptr, ivCopy, 16, nullptr, 0, &cbOut, BCRYPT_BLOCK_PADDING);
+
+    memcpy(ivCopy, iv, 16);
+    std::vector<unsigned char> plain(cbOut);
+    NTSTATUS st = BCryptDecrypt(hKey, const_cast<PUCHAR>(cipherData), cipherLen,
+                                nullptr, ivCopy, 16, plain.data(), cbOut, &cbOut, BCRYPT_BLOCK_PADDING);
+    BCryptDestroyKey(hKey);
+    BCryptCloseAlgorithmProvider(hAlg, 0);
+    if (st != 0) throw std::runtime_error("AES decryption failed. Wrong key or corrupted file.");
+
+    return std::vector<char>(plain.begin(), plain.begin() + cbOut);
+}
+
+#endif // _WIN32
+
 std::string encryptTextFromString(const std::string& content,
                                   const std::string& filename,
-                                  const std::string& key) {
+                                  const std::string& key,
+                                  CipherMethod method,
+                                  std::atomic<float>* progress) {
     if (content.empty()) throw std::runtime_error("Content is empty.");
     if (key.empty())     throw std::runtime_error("Key is empty.");
+    if (progress) *progress = 0.2f;
     std::vector<char> buf(content.begin(), content.end());
-    xorCipher(buf.data(), buf.size(), key);
+    if (progress) *progress = 0.4f;
+    if (method == CipherMethod::AES256) {
+#ifdef _WIN32
+        buf = aesEncryptBuffer(buf, key);
+#else
+        throw std::runtime_error("AES-256 not supported on this platform.");
+#endif
+    } else {
+        xorCipher(buf.data(), buf.size(), key);
+    }
+    if (progress) *progress = 0.7f;
     std::string fname = filename;
     if (fname.size() < 4 || fname.substr(fname.size() - 4) != ".txt") fname += ".txt";
     std::string outpath = ENC_TEXT_DIR + "/" + fname;
     writeBinaryFile(outpath, buf);
+    if (progress) *progress = 1.0f;
     return outpath;
 }
 
-std::string encryptTextFile(const std::string& inputPath, const std::string& key) {
+std::string encryptTextFile(const std::string& inputPath, const std::string& key,
+                            CipherMethod method, std::atomic<float>* progress) {
     if (key.empty()) throw std::runtime_error("Key is empty.");
+    if (progress) *progress = 0.2f;
     auto buf = readBinaryFile(inputPath);
-    xorCipher(buf.data(), buf.size(), key);
+    if (progress) *progress = 0.4f;
+    if (method == CipherMethod::AES256) {
+#ifdef _WIN32
+        buf = aesEncryptBuffer(buf, key);
+#else
+        throw std::runtime_error("AES-256 not supported on this platform.");
+#endif
+    } else {
+        xorCipher(buf.data(), buf.size(), key);
+    }
+    if (progress) *progress = 0.7f;
     std::string outpath = ENC_TEXT_DIR + "/" + fs::path(inputPath).filename().string();
     writeBinaryFile(outpath, buf);
+    if (progress) *progress = 1.0f;
     return outpath;
 }
 
 std::string decryptTextFile(const std::string& encryptedPath,
                             const std::string& key,
-                            std::string& savedPath) {
+                            std::string& savedPath,
+                            CipherMethod method,
+                            std::atomic<float>* progress) {
     if (key.empty()) throw std::runtime_error("Key is empty.");
+    if (progress) *progress = 0.2f;
     auto buf = readBinaryFile(encryptedPath);
-    xorCipher(buf.data(), buf.size(), key);
+    if (progress) *progress = 0.4f;
+    if (method == CipherMethod::AES256) {
+#ifdef _WIN32
+        buf = aesDecryptBuffer(buf, key);
+#else
+        throw std::runtime_error("AES-256 not supported on this platform.");
+#endif
+    } else {
+        xorCipher(buf.data(), buf.size(), key);
+    }
+    if (progress) *progress = 0.7f;
     savedPath = DEC_TEXT_DIR + "/" + fs::path(encryptedPath).filename().string();
     writeBinaryFile(savedPath, buf);
+    if (progress) *progress = 1.0f;
     return std::string(buf.begin(), buf.end());
 }
 
-std::string encryptImageFile(const std::string& inputPath, const std::string& key) {
+std::string encryptImageFile(const std::string& inputPath, const std::string& key,
+                             CipherMethod method, std::atomic<float>* progress) {
     if (key.empty()) throw std::runtime_error("Key is empty.");
     std::string ext = fs::path(inputPath).extension().string();
     std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
     if (ext != ".jpg" && ext != ".jpeg" && ext != ".png")
         throw std::runtime_error("Only .jpg, .jpeg, and .png files are supported.");
+    if (progress) *progress = 0.2f;
     auto buf = readBinaryFile(inputPath);
-    xorCipher(buf.data(), buf.size(), key);
-    scrambleBytes(buf.data(), buf.size(), key);
+    if (progress) *progress = 0.4f;
+    if (method == CipherMethod::AES256) {
+#ifdef _WIN32
+        buf = aesEncryptBuffer(buf, key);
+#else
+        throw std::runtime_error("AES-256 not supported on this platform.");
+#endif
+    } else {
+        xorCipher(buf.data(), buf.size(), key);
+        scrambleBytes(buf.data(), buf.size(), key);
+    }
+    if (progress) *progress = 0.7f;
     std::string outpath = ENC_IMG_DIR + "/" + fs::path(inputPath).stem().string()
                         + ".enc" + fs::path(inputPath).extension().string();
     writeBinaryFile(outpath, buf);
+    if (progress) *progress = 1.0f;
     return outpath;
 }
 
-std::string decryptImageFile(const std::string& encryptedPath, const std::string& key) {
+std::string decryptImageFile(const std::string& encryptedPath, const std::string& key,
+                             CipherMethod method, std::atomic<float>* progress) {
     if (key.empty()) throw std::runtime_error("Key is empty.");
+    if (progress) *progress = 0.2f;
     auto buf = readBinaryFile(encryptedPath);
-    unscrambleBytes(buf.data(), buf.size(), key);
-    xorCipher(buf.data(), buf.size(), key);
+    if (progress) *progress = 0.4f;
+    if (method == CipherMethod::AES256) {
+#ifdef _WIN32
+        buf = aesDecryptBuffer(buf, key);
+#else
+        throw std::runtime_error("AES-256 not supported on this platform.");
+#endif
+    } else {
+        unscrambleBytes(buf.data(), buf.size(), key);
+        xorCipher(buf.data(), buf.size(), key);
+    }
+    if (progress) *progress = 0.7f;
     std::string outname = fs::path(encryptedPath).filename().string();
     auto pos = outname.find(".enc");
     if (pos != std::string::npos) outname.erase(pos, 4);
     std::string outpath = DEC_IMG_DIR + "/" + outname;
     writeBinaryFile(outpath, buf);
+    if (progress) *progress = 1.0f;
     return outpath;
 }
 

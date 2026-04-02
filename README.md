@@ -1,173 +1,197 @@
-# File Encryption & Decryption Tool
+<div align="center">
 
-A **C++17** application that encrypts and decrypts text files and images using the **XOR cipher**. Features both a **GUI** (Dear ImGui) and a **command-line interface**. Image encryption includes an additional byte-scrambling layer for extra obfuscation.
+# 🔐 CryptVault
+
+### Lightweight File Encryption Suite for Windows
+
+**Encrypt and decrypt text files & images with a sleek desktop GUI — powered by C++17.**
+
+[![C++17](https://img.shields.io/badge/C%2B%2B-17-blue.svg?style=flat&logo=c%2B%2B)](https://isocpp.org/)
+[![CMake](https://img.shields.io/badge/CMake-3.16%2B-064F8C.svg?style=flat&logo=cmake)](https://cmake.org/)
+[![OpenGL](https://img.shields.io/badge/OpenGL-3.3-green.svg?style=flat&logo=opengl)](https://www.opengl.org/)
+[![License](https://img.shields.io/badge/License-Open%20Source-brightgreen.svg?style=flat)]()
+
+---
+
+<!-- Replace the path below with your actual screenshot -->
+<img src="screenshot.png" alt="CryptVault – Home Screen" width="720" />
+
+*Minimalistic white & black interface with floating particle animations and smooth transitions.*
+
+</div>
+
+---
+
+## Why CryptVault?
+
+Most encryption tools are either command-line only or bloated with features you don't need. **CryptVault** gives you a polished desktop experience in under 2 MB — no installers, no dependencies to hunt down, just build and run.
+
+- **Beautiful GUI** — Dear ImGui-powered interface with a clean monochrome aesthetic, rounded corners, and subtle particle animations.
+- **Dual Interface** — Use the graphical app or drop down to the CLI for scripting and automation.
+- **Text & Image Support** — Encrypt `.txt` files and `.jpg`/`.jpeg`/`.png` images with a single key.
+- **Double-Layer Image Encryption** — XOR cipher + byte-position scrambling makes encrypted images completely unrecognizable.
+- **Zero Config** — Output folders are created automatically. Just pick a file, enter a key, and go.
 
 ---
 
 ## Features
 
-### GUI Application
-A clean, minimalistic graphical interface built with **Dear ImGui + GLFW + OpenGL 3.3**. White and black theme with floating particle animations, smooth page transitions, and native file dialogs. Encrypt or decrypt files with just a few clicks — no terminal required.
-
-### Command-Line Interface
-The original terminal-based interface with interactive menus, masked key input, and colored output. Ideal for scripting or quick operations.
-
-### Text File Encryption & Decryption
-Encrypt and decrypt `.txt` files using XOR cipher. You can either **select an existing file** or **create a new file** by typing content directly. Encrypted files are saved to `Encrypted Files/Text Files/`, and decrypted output goes to `Decrypted Files/Text Files/`.
-
-### Image File Encryption & Decryption
-Encrypt and decrypt image files in `.jpg`, `.jpeg`, and `.png` formats. Encrypted images are saved with a `.enc` tag in the filename to `Encrypted Files/Images/`, and decrypted images are restored to `Decrypted Files/Images/`.
-
-### Double-Layer Image Encryption
-Image files go through two encryption steps. First, every byte is XOR'd with the key. Then, byte positions are scrambled using a deterministic pseudo-random sequence seeded from the key, making the encrypted image visually unrecognizable. Decryption reverses both steps.
-
-### Key Strength Validation
-Short keys (< 4 characters) trigger a warning. You can choose to proceed or use a stronger key.
-
-### Overwrite Protection
-The tool checks for existing files before saving and prompts before overwriting.
-
-### Organized File Structure
-Required folders are created automatically on startup: `Input Files/`, `Encrypted Files/`, and `Decrypted Files/` with subfolders for text and images.
+| Feature | Details |
+|---|---|
+| **GUI Application** | White/black themed desktop app with floating particles, smooth page transitions, native file dialogs |
+| **CLI Interface** | Interactive terminal menus, masked key input, colored output — great for scripting |
+| **Text Encryption** | Encrypt/decrypt `.txt` files or create new encrypted content from scratch |
+| **Image Encryption** | Encrypt/decrypt `.jpg`, `.jpeg`, `.png` with dual-layer obfuscation |
+| **Key Validation** | Warns on weak keys (< 4 chars) with option to proceed or strengthen |
+| **Overwrite Protection** | Prompts before replacing existing files |
+| **Auto File Organization** | Creates `Input Files/`, `Encrypted Files/`, `Decrypted Files/` directories on startup |
 
 ---
 
-## Project Structure
+## Quick Start
 
-```
-├── gui_main.cpp        # GUI application (Dear ImGui)
-├── crypto_core.cpp/h   # Non-interactive encryption API (used by GUI)
-├── main.cpp            # CLI entry point and menu system
-├── txt_crypt.cpp/h     # Text file encryption & decryption
-├── img_crypt.cpp/h     # Image file encryption & decryption
-├── utils.cpp/h         # Shared utilities (XOR cipher, key input, etc.)
-├── CMakeLists.txt      # CMake build config (builds both CLI & GUI)
-├── .gitignore
-│
-├── libs/
-│   ├── imgui/          # Dear ImGui (immediate-mode GUI)
-│   ├── glfw/           # GLFW (windowing & input)
-│   └── tinyfiledialogs/ # Native OS file dialogs
-│
-├── Input Files/           # Place files here to encrypt
-├── Encrypted Files/
-│   ├── Text Files/        # Encrypted text output
-│   └── Images/            # Encrypted image output
-└── Decrypted Files/
-    ├── Text Files/        # Decrypted text output
-    └── Images/            # Decrypted image output
-```
+### Prerequisites
 
----
+- C++17 compiler (GCC, Clang, or MSVC)
+- [CMake 3.16+](https://cmake.org/)
+- OpenGL 3.3 capable GPU
 
-## Prerequisites
-
-- A C++17 compatible compiler (GCC, Clang, or MSVC)
-- [CMake](https://cmake.org/) 3.16+
-- OpenGL 3.3 capable GPU (for the GUI)
-
----
-
-## Getting Started
-
-### 1. Clone the repository
+### Build
 
 ```bash
 git clone https://github.com/VJaY-4/File-encryption-tool.git
 cd File-encryption-tool
 ```
 
-### 2. Build the project
-
-#### Using CMake (builds both CLI and GUI)
-
+**Linux / macOS:**
 ```bash
 cmake -S . -B build
 cmake --build build
 ```
 
-> **Windows (MSYS2/MinGW):**
+**Windows (MSYS2 / MinGW):**
+```bash
+cmake -S . -B build -G "MinGW Makefiles"
+cmake --build build
+```
+
+### Run
+
+```bash
+# Launch the GUI
+./build/encrypt_tool_gui        # Linux/macOS
+.\build\encrypt_tool_gui.exe    # Windows
+
+# Launch the CLI
+./build/encrypt_tool            # Linux/macOS
+.\build\encrypt_tool.exe        # Windows
+```
+
+> **CLI-only build** (no CMake needed):
 > ```bash
-> cmake -S . -B build -G "MinGW Makefiles"
-> cmake --build build
+> g++ -std=c++17 -Wall -Wextra -Wpedantic -o encrypt_tool main.cpp txt_crypt.cpp img_crypt.cpp utils.cpp
 > ```
-
-This produces two executables:
-- **encrypt_tool** — Command-line interface
-- **encrypt_tool_gui** — Graphical interface
-
-#### CLI only (no CMake needed)
-
-```bash
-g++ -std=c++17 -Wall -Wextra -Wpedantic -o encrypt_tool main.cpp txt_crypt.cpp img_crypt.cpp utils.cpp
-```
-
-### 3. Run
-
-```bash
-# GUI
-./build/encrypt_tool_gui
-
-# CLI
-./build/encrypt_tool
-```
-
-On Windows, use `.exe` extensions: `encrypt_tool_gui.exe` / `encrypt_tool.exe`.
 
 ---
 
 ## Usage
 
-### GUI
-1. Launch `encrypt_tool_gui`
-2. Click **Encrypt** or **Decrypt** on the home screen
-3. Select file type (Text or Image)
-4. Browse for a file or type new content
-5. Enter an encryption key
-6. Click the action button — output is saved to the corresponding folder
+### GUI Workflow
 
-### CLI
-1. Run `encrypt_tool`
-2. Choose **Encrypt** or **Decrypt** from the menu
-3. Select the file type (Text or Image)
-4. Provide the file (enter a path or place it in `Input Files/`)
-5. Enter an encryption key (input is masked)
-6. Output is saved to the corresponding folder
+```
+Launch App  →  Encrypt / Decrypt  →  Text or Image  →  Pick File  →  Enter Key  →  Done ✓
+```
+
+1. Open **encrypt_tool_gui**
+2. Click **Encrypt** or **Decrypt** on the home screen
+3. Choose file type — Text or Image
+4. Browse for a file or type new content directly
+5. Enter your encryption key
+6. Hit the action button — output saved automatically
+
+### CLI Workflow
+
+1. Run **encrypt_tool**
+2. Select **Encrypt** or **Decrypt**
+3. Choose file type
+4. Provide a file path or place files in `Input Files/`
+5. Enter key (input is masked)
+6. Output saved to the corresponding folder
 
 ---
 
 ## How It Works
 
-### XOR Encryption
+### XOR Cipher
 
-XOR (Exclusive OR) is a bitwise operation where the same operation and key are used for both encryption and decryption:
+XOR is a symmetric bitwise operation — the same key encrypts and decrypts:
 
 ```
-Data XOR Key = Encrypted Data
-Encrypted Data XOR Key = Original Data
+plaintext  ⊕  key  =  ciphertext
+ciphertext ⊕  key  =  plaintext
 ```
 
-**Text files** — Each byte is XOR'd with the corresponding byte of the key (key repeats cyclically).
+The key repeats cyclically across the data. Simple, fast, and reversible.
 
-**Image files** — Two layers:
-1. XOR cipher on every byte of raw image data
-2. Byte-position scrambling using a deterministic pseudo-random sequence seeded from the key
+### Double-Layer Image Encryption
 
-### Limitations
+Images go through **two passes** for stronger visual obfuscation:
 
-> **Note:** XOR with a short, repeating key is **not cryptographically secure**. This tool is a **learning project** to demonstrate encryption concepts — not for protecting sensitive data. For real-world security, use established libraries like OpenSSL or libsodium.
+1. **XOR Pass** — Every byte of raw image data is XOR'd with the key
+2. **Scramble Pass** — Byte positions are shuffled using a deterministic PRNG seeded from the key
+
+The result is completely unrecognizable. Decryption reverses both steps in order.
+
+> **Disclaimer:** XOR with a short repeating key is not cryptographically secure. CryptVault is a **learning project** demonstrating encryption concepts — not intended for protecting sensitive data. For production security, use established libraries like OpenSSL or libsodium.
+
+---
+
+## Project Structure
+
+```
+├── gui_main.cpp          GUI application (Dear ImGui + GLFW + OpenGL)
+├── crypto_core.cpp/h     Encryption API (non-interactive, used by GUI)
+├── main.cpp              CLI entry point
+├── txt_crypt.cpp/h       Text file encryption & decryption
+├── img_crypt.cpp/h       Image file encryption & decryption
+├── utils.cpp/h           Shared utilities (XOR cipher, key input, etc.)
+├── CMakeLists.txt        Build configuration
+│
+├── libs/
+│   ├── imgui/            Dear ImGui
+│   ├── glfw/             GLFW windowing library
+│   ├── stb_image.h       Image loading
+│   └── tinyfiledialogs/  Native OS file dialogs
+│
+├── Input Files/          Drop files here to encrypt
+├── Encrypted Files/      Encrypted output (Text Files/ & Images/)
+└── Decrypted Files/      Decrypted output (Text Files/ & Images/)
+```
 
 ---
 
 ## Tech Stack
 
-- **C++17** — Core language
-- **Dear ImGui** — Immediate-mode GUI framework
-- **GLFW** — Windowing and input
-- **OpenGL 3.3** — Rendering backend
-- **tinyfiledialogs** — Native OS file dialogs
-- **CMake** — Build system
+<div align="center">
+
+| | Technology | Role |
+|---|---|---|
+| 🧠 | **C++17** | Core language |
+| 🖼️ | **Dear ImGui** | Immediate-mode GUI framework |
+| 🪟 | **GLFW** | Windowing & input |
+| 🎨 | **OpenGL 3.3** | Rendering backend |
+| 📂 | **tinyfiledialogs** | Native OS file dialogs |
+| 📷 | **stb_image** | Image loading |
+| 🔧 | **CMake** | Build system |
+
+</div>
 
 ---
 
-This project is open source.
+<div align="center">
+
+**Built with C++ and curiosity.**
+
+[⬆ Back to Top](#-cryptvault)
+
+</div>

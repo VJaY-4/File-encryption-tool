@@ -50,6 +50,7 @@ target_include_directories(encrypt_tool_gui PRIVATE
     ${IMGUI_DIR}
     ${IMGUI_DIR}/backends
     ${TFD_DIR}
+    ${CMAKE_SOURCE_DIR}/libs
 )
 
 target_link_libraries(encrypt_tool_gui PRIVATE glfw)
@@ -58,9 +59,10 @@ target_link_libraries(encrypt_tool_gui PRIVATE glfw)
 find_package(OpenGL REQUIRED)
 target_link_libraries(encrypt_tool_gui PRIVATE OpenGL::GL)
 
-# On Windows, link comdlg32 + ole32 for tinyfiledialogs
+# On Windows, link comdlg32 + ole32 for tinyfiledialogs, bcrypt for AES
 if(WIN32)
-    target_link_libraries(encrypt_tool_gui PRIVATE comdlg32 ole32)
+    target_link_libraries(encrypt_tool_gui PRIVATE comdlg32 ole32 bcrypt)
+    target_link_libraries(encrypt_tool PRIVATE bcrypt)
 endif()
 
 if(MSVC)
