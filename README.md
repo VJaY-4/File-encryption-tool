@@ -39,6 +39,7 @@ Most encryption tools are either command-line only or bloated with features you 
 | Feature | Details |
 |---|---|
 | **GUI Application** | White/black themed desktop app with floating particles, smooth page transitions, native file dialogs |
+| **Drag & Drop Input** | Drop supported files directly into the app window on Encrypt/Decrypt pages for faster selection |
 | **CLI Interface** | Interactive terminal menus, masked key input, colored output — great for scripting |
 | **Text Encryption** | Encrypt/decrypt `.txt` files or create new encrypted content from scratch |
 | **Image Encryption** | Encrypt/decrypt `.jpg`, `.jpeg`, `.png` with dual-layer obfuscation |
@@ -105,7 +106,7 @@ Launch App  →  Encrypt / Decrypt  →  Text or Image  →  Pick File  →  Ent
 1. Open **encrypt_tool_gui**
 2. Click **Encrypt** or **Decrypt** on the home screen
 3. Choose file type — Text or Image
-4. Browse for a file or type new content directly
+4. Browse for a file, drag and drop a file into the app, or type new content directly
 5. Enter your encryption key
 6. Hit the action button — output saved automatically
 

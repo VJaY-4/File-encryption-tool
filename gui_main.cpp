@@ -19,6 +19,7 @@
 #include <vector>
 #include <cmath>
 #include <algorithm>
+#include <cctype>
 #include <filesystem>
 #include <future>
 #include <atomic>
@@ -136,7 +137,10 @@ static char  gDecKey[256] = {};
 static int   gDecSelected = -1;
 static std::vector<std::string> gDecFileList;
 static std::string gDecResult;
+static std::string gDecDirectFilePath;
 static bool  gShowDecKey = false;
+
+static std::vector<std::string> gDroppedPaths;
 
 // Image preview texture
 static GLuint gPreviewTexture = 0;
@@ -173,6 +177,80 @@ static void RenderImagePreview(GLuint tex, int tw, int th) {
     float scale = std::min(maxW / (float)tw, maxH / (float)th);
     if (scale > 1.0f) scale = 1.0f;
     ImGui::Image((ImTextureID)(intptr_t)tex, ImVec2(tw * scale, th * scale));
+}
+
+static std::string ToLower(std::string s) {
+    std::transform(s.begin(), s.end(), s.begin(),
+        [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+    return s;
+}
+
+static bool IsTextFile(const std::string& path) {
+    return ToLower(fs::path(path).extension().string()) == ".txt";
+}
+
+static bool IsImageFile(const std::string& path) {
+    const std::string ext = ToLower(fs::path(path).extension().string());
+    return ext == ".jpg" || ext == ".jpeg" || ext == ".png";
+}
+
+static void GLFWDropCallback(GLFWwindow*, int count, const char** paths) {
+    for (int i = 0; i < count; ++i) {
+        if (paths[i]) gDroppedPaths.emplace_back(paths[i]);
+    }
+}
+
+static void ProcessDroppedFiles() {
+    if (gDroppedPaths.empty()) return;
+
+    std::vector<std::string> dropped;
+    dropped.swap(gDroppedPaths);
+
+    for (const std::string& path : dropped) {
+        try {
+            if (!fs::exists(path)) {
+                PushToast("Dropped file not found.", true);
+                continue;
+            }
+            if (!fs::is_regular_file(path)) {
+                PushToast("Only files can be dropped.", true);
+                continue;
+            }
+
+            if (gCurrentPage == Page::Encrypt) {
+                if (IsTextFile(path)) {
+                    gEncFileType = 0;
+                    gEncTextMode = 0;
+                    gEncFilePath = path;
+                    PushToast("Text file selected from drag and drop.");
+                } else if (IsImageFile(path)) {
+                    gEncFileType = 1;
+                    gEncFilePath = path;
+                    PushToast("Image file selected from drag and drop.");
+                } else {
+                    PushToast("Unsupported file. Drop .txt, .jpg, .jpeg, or .png.", true);
+                }
+                continue;
+            }
+
+            if (gCurrentPage == Page::Decrypt) {
+                if (IsImageFile(path)) {
+                    gDecFileType = 1;
+                } else {
+                    gDecFileType = 0;
+                }
+                gDecDirectFilePath = path;
+                gDecSelected = -1;
+                gDecResult.clear();
+                PushToast("File selected for decryption from drag and drop.");
+                continue;
+            }
+
+            PushToast("Open Encrypt or Decrypt page, then drop files.", true);
+        } catch (...) {
+            PushToast("Could not process dropped file.", true);
+        }
+    }
 }
 
 // Cipher method: 0 = XOR, 1 = AES-256
@@ -358,6 +436,8 @@ static void RenderEncrypt() {
     ImGui::RadioButton("Text File", &gEncFileType, 0); ImGui::SameLine();
     ImGui::RadioButton("Image File", &gEncFileType, 1);
     ImGui::Dummy(ImVec2(0, 5));
+    ImGui::TextDisabled("Tip: drag and drop a .txt, .jpg, .jpeg, or .png file into the app window.");
+    ImGui::Dummy(ImVec2(0, 5));
 
     ImGui::Text("Cipher");
     ImGui::RadioButton("XOR", &gEncCipherMethod, 0); ImGui::SameLine();
@@ -475,7 +555,14 @@ static void RenderDecrypt() {
     int prevType = gDecFileType;
     ImGui::RadioButton("Text File##d", &gDecFileType, 0); ImGui::SameLine();
     ImGui::RadioButton("Image File##d", &gDecFileType, 1);
-    if (gDecFileType != prevType) { gDecFileList.clear(); gDecSelected = -1; gDecResult.clear(); }
+    if (gDecFileType != prevType) {
+        gDecFileList.clear();
+        gDecSelected = -1;
+        gDecResult.clear();
+        gDecDirectFilePath.clear();
+    }
+    ImGui::Dummy(ImVec2(0, 5));
+    ImGui::TextDisabled("Tip: drag and drop an encrypted file into the app window.");
     ImGui::Dummy(ImVec2(0, 5));
 
     ImGui::Text("Cipher");
@@ -486,8 +573,16 @@ static void RenderDecrypt() {
     if (CoffeeButton("Refresh List")) {
         gDecFileList = (gDecFileType == 0) ? listEncryptedTextFiles() : listEncryptedImageFiles();
         gDecSelected = -1;
+        gDecDirectFilePath.clear();
     }
     ImGui::Dummy(ImVec2(0, 5));
+
+    if (!gDecDirectFilePath.empty()) {
+        ImGui::Text("Selected dropped file:");
+        ImGui::TextWrapped("%s", gDecDirectFilePath.c_str());
+        if (ImGui::SmallButton("Use list selection instead")) gDecDirectFilePath.clear();
+        ImGui::Dummy(ImVec2(0, 5));
+    }
 
     if (gDecFileList.empty()) {
         ImGui::TextDisabled("No encrypted files found. Click Refresh.");
@@ -526,12 +621,17 @@ static void RenderDecrypt() {
         std::string key(gDecKey);
         if (key.empty()) {
             PushToast("Enter a decryption key.", true);
-        } else if (gDecSelected < 0) {
-            PushToast("Select a file to decrypt.", true);
+        } else if (gDecSelected < 0 && gDecDirectFilePath.empty()) {
+            PushToast("Select or drop a file to decrypt.", true);
         } else {
             CipherMethod method = (gDecCipherMethod == 1) ? CipherMethod::AES256 : CipherMethod::XOR;
-            std::string fullPath = ((gDecFileType == 0) ? ENC_TEXT_DIR : ENC_IMG_DIR)
-                                 + "/" + gDecFileList[gDecSelected];
+            std::string fullPath;
+            if (!gDecDirectFilePath.empty()) {
+                fullPath = gDecDirectFilePath;
+            } else {
+                fullPath = ((gDecFileType == 0) ? ENC_TEXT_DIR : ENC_IMG_DIR)
+                         + "/" + gDecFileList[gDecSelected];
+            }
             if (!fs::exists(fullPath)) {
                 PushToast("File no longer exists. Refresh the list.", true);
             } else {
@@ -576,6 +676,7 @@ int main() {
     GLFWwindow* window = glfwCreateWindow(1350, 900, "XOR Cipher Tool", nullptr, nullptr);
     if (!window) { glfwTerminate(); return 1; }
     glfwMakeContextCurrent(window);
+    glfwSetDropCallback(window, GLFWDropCallback);
     glfwSwapInterval(1);
 
     IMGUI_CHECKVERSION();
@@ -593,6 +694,7 @@ int main() {
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
+        ProcessDroppedFiles();
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
