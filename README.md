@@ -29,6 +29,7 @@ Most encryption tools are either command-line only or bloated with features you 
 - **Beautiful GUI** — Dear ImGui-powered interface with a clean monochrome aesthetic, rounded corners, and subtle particle animations.
 - **Dual Interface** — Use the graphical app or drop down to the CLI for scripting and automation.
 - **Text & Image Support** — Encrypt `.txt` files and `.jpg`/`.jpeg`/`.png` images with a single key.
+- **Cipher Options** — Choose between **XOR** and **AES-256** in both Encrypt and Decrypt flows.
 - **Double-Layer Image Encryption** — XOR cipher + byte-position scrambling makes encrypted images completely unrecognizable.
 - **Zero Config** — Output folders are created automatically. Just pick a file, enter a key, and go.
 
@@ -41,6 +42,7 @@ Most encryption tools are either command-line only or bloated with features you 
 | **GUI Application** | White/black themed desktop app with floating particles, smooth page transitions, native file dialogs |
 | **Drag & Drop Input** | Drop supported files directly into the app window on Encrypt/Decrypt pages for faster selection |
 | **CLI Interface** | Interactive terminal menus, masked key input, colored output — great for scripting |
+| **Cipher Selection** | Supports both XOR and AES-256 for encryption and decryption |
 | **Text Encryption** | Encrypt/decrypt `.txt` files or create new encrypted content from scratch |
 | **Image Encryption** | Encrypt/decrypt `.jpg`, `.jpeg`, `.png` with dual-layer obfuscation |
 | **Key Validation** | Warns on weak keys (< 4 chars) with option to proceed or strengthen |
@@ -123,9 +125,14 @@ Launch App  →  Encrypt / Decrypt  →  Text or Image  →  Pick File  →  Ent
 
 ## How It Works
 
-### XOR Cipher
+### XOR and AES-256 Ciphers
 
-XOR is a symmetric bitwise operation — the same key encrypts and decrypts:
+CryptVault supports two cipher modes:
+
+- **XOR**: a symmetric bitwise operation where the same key encrypts and decrypts.
+- **AES-256**: a stronger block cipher mode for better practical security.
+
+XOR works as:
 
 ```
 plaintext  ⊕  key  =  ciphertext
@@ -133,6 +140,8 @@ ciphertext ⊕  key  =  plaintext
 ```
 
 The key repeats cyclically across the data. Simple, fast, and reversible.
+
+AES-256 uses a derived 256-bit key and encrypted binary output format with embedded metadata required for decryption.
 
 ### Double-Layer Image Encryption
 
@@ -143,7 +152,7 @@ Images go through **two passes** for stronger visual obfuscation:
 
 The result is completely unrecognizable. Decryption reverses both steps in order.
 
-> **Disclaimer:** XOR with a short repeating key is not cryptographically secure. CryptVault is a **learning project** demonstrating encryption concepts — not intended for protecting sensitive data. For production security, use established libraries like OpenSSL or libsodium.
+> **Disclaimer:** XOR with a short repeating key is not cryptographically secure. AES-256 is the stronger option in this app. CryptVault is a **learning project** demonstrating encryption concepts — not intended for protecting highly sensitive production data.
 
 ---
 
@@ -155,7 +164,7 @@ The result is completely unrecognizable. Decryption reverses both steps in order
 ├── main.cpp              CLI entry point
 ├── txt_crypt.cpp/h       Text file encryption & decryption
 ├── img_crypt.cpp/h       Image file encryption & decryption
-├── utils.cpp/h           Shared utilities (XOR cipher, key input, etc.)
+├── utils.cpp/h           Shared utilities (key input, helpers, etc.)
 ├── CMakeLists.txt        Build configuration
 │
 ├── libs/
