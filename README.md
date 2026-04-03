@@ -125,12 +125,9 @@ Launch App  →  Encrypt / Decrypt  →  Text or Image  →  Pick File  →  Ent
 
 ## How It Works
 
-### XOR and AES-256 Ciphers
+### XOR Cipher
 
-CryptVault supports two cipher modes:
-
-- **XOR**: a symmetric bitwise operation where the same key encrypts and decrypts.
-- **AES-256**: a stronger block cipher mode for better practical security.
+XOR is a symmetric bitwise operation where the same key encrypts and decrypts.
 
 XOR works as:
 
@@ -141,7 +138,11 @@ ciphertext ⊕  key  =  plaintext
 
 The key repeats cyclically across the data. Simple, fast, and reversible.
 
-AES-256 uses a derived 256-bit key and encrypted binary output format with embedded metadata required for decryption.
+### AES-256 Cipher
+
+AES-256 is a stronger block cipher mode for better practical security.
+
+In this project, AES mode uses a derived 256-bit key and encrypted binary output format with embedded metadata required for decryption.
 
 ### Double-Layer Image Encryption
 
