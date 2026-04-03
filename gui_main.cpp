@@ -12,6 +12,10 @@
 
 #include <GLFW/glfw3.h>
 
+#ifndef GL_MULTISAMPLE
+#define GL_MULTISAMPLE 0x809D
+#endif
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -96,7 +100,8 @@ static void RenderToasts() {
     for (auto it = gToasts.begin(); it != gToasts.end(); ) {
         it->timer -= ImGui::GetIO().DeltaTime;
         if (it->timer <= 0.0f) { it = gToasts.erase(it); continue; }
-        float alpha = std::min(it->timer, 1.0f);
+        float elapsed = 3.5f - it->timer;
+        float alpha = std::min({1.0f, elapsed / 0.25f, it->timer});
         ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 20, y), 0, ImVec2(1.0f, 0.0f));
         ImGui::SetNextWindowBgAlpha(alpha * 0.88f);
         char label[32]; snprintf(label, sizeof(label), "##toast%d", idx++);
@@ -765,12 +770,14 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+    glfwWindowHint(GLFW_SAMPLES, 4);
 
     GLFWwindow* window = glfwCreateWindow(1350, 900, "XOR Cipher Tool", nullptr, nullptr);
     if (!window) { glfwTerminate(); return 1; }
     glfwMakeContextCurrent(window);
     glfwSetDropCallback(window, GLFWDropCallback);
     glfwSwapInterval(1);
+    glEnable(GL_MULTISAMPLE);
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -783,18 +790,29 @@ int main() {
     ApplyCoffeeTheme();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
+    glClearColor(0.97f, 0.97f, 0.97f, 1.0f);
+
     while (!glfwWindowShouldClose(window)) {
-        glfwPollEvents();
+        // Smart frame pacing: only spin at full rate when animating
+        bool animating = (gCurrentPage == Page::Home)
+                      || (gTargetPage != gCurrentPage)
+                      || gProcessing
+                      || !gToasts.empty();
+        if (animating)
+            glfwPollEvents();
+        else
+            glfwWaitEventsTimeout(0.1);
+
         ProcessDroppedFiles();
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
         if (gTargetPage != gCurrentPage) {
-            gPageAlpha = smoothLerp(gPageAlpha, 0.0f, 10.0f);
-            if (gPageAlpha < 0.03f) { gCurrentPage = gTargetPage; gPageAlpha = 0.0f; }
+            gPageAlpha = smoothLerp(gPageAlpha, 0.0f, 8.0f);
+            if (gPageAlpha < 0.01f) { gCurrentPage = gTargetPage; gPageAlpha = 0.0f; }
         } else {
-            gPageAlpha = smoothLerp(gPageAlpha, 1.0f, 6.0f);
+            gPageAlpha = smoothLerp(gPageAlpha, 1.0f, 8.0f);
         }
 
         ImGui::SetNextWindowPos(ImVec2(0, 0));
@@ -818,7 +836,6 @@ int main() {
         RenderToasts();
 
         ImGui::Render();
-        glClearColor(0.97f, 0.97f, 0.97f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
