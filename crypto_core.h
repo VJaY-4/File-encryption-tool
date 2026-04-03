@@ -15,9 +15,6 @@ extern const std::string DEC_TEXT_DIR;
 extern const std::string DEC_IMG_DIR;
 extern const std::string INPUT_DIR;
 
-// Ensure all output directories exist.
-void ensureDirectories();
-
 // XOR cipher: each byte XORed with key (wrapping). Running twice restores original.
 void xorCipher(char* buf, size_t len, const std::string& key);
 

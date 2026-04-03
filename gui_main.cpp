@@ -207,7 +207,6 @@ static std::string BuildEncryptedImageName(const std::string& sourcePath) {
 
 static std::string PickEncryptSavePath(int fileType, int textMode, const std::string& filePath, const std::string& typedName) {
     std::string outName;
-    std::string defaultDir;
 
     if (fileType == 0) {
         if (textMode == 0) {
@@ -217,8 +216,7 @@ static std::string PickEncryptSavePath(int fileType, int textMode, const std::st
             if (typedName.empty()) return std::string();
             outName = BuildEncryptedTextName(typedName, true);
         }
-        defaultDir = ENC_TEXT_DIR;
-        const std::string defaultPath = defaultDir + "/" + outName;
+        const std::string defaultPath = outName;
         const char* filters[] = { "*.txt" };
         const char* picked = tinyfd_saveFileDialog("Save encrypted text as", defaultPath.c_str(), 1, filters, "Text files");
         return picked ? std::string(picked) : std::string();
@@ -226,8 +224,7 @@ static std::string PickEncryptSavePath(int fileType, int textMode, const std::st
 
     if (filePath.empty()) return std::string();
     outName = BuildEncryptedImageName(filePath);
-    defaultDir = ENC_IMG_DIR;
-    const std::string defaultPath = defaultDir + "/" + outName;
+    const std::string defaultPath = outName;
     const char* filters[] = { "*.jpg", "*.jpeg", "*.png" };
     const char* picked = tinyfd_saveFileDialog("Save encrypted image as", defaultPath.c_str(), 3, filters, "Image files");
     return picked ? std::string(picked) : std::string();
@@ -243,7 +240,7 @@ static std::string DecryptedOutputNameFromEncrypted(const std::string& encrypted
 }
 static std::string PickDecryptSavePath(const std::string& encryptedPath, bool isImage) {
     const std::string outName = DecryptedOutputNameFromEncrypted(encryptedPath, isImage);
-    std::string defaultPath = std::string(isImage ? DEC_IMG_DIR : DEC_TEXT_DIR) + "/" + outName;
+    std::string defaultPath = outName;
     if (isImage) {
         const char* filters[] = { "*.jpg", "*.jpeg", "*.png" };
         const char* picked = tinyfd_saveFileDialog("Save decrypted image as", defaultPath.c_str(), 3, filters, "Image files");
@@ -520,7 +517,7 @@ static void RenderEncrypt() {
         if (gEncTextMode == 0) {
             if (CoffeeButton("Browse...")) {
                 const char* filters[] = { "*.txt" };
-                const char* path = tinyfd_openFileDialog("Select text file", INPUT_DIR.c_str(), 1, filters, "Text files", 0);
+                const char* path = tinyfd_openFileDialog("Select text file", "", 1, filters, "Text files", 0);
                 if (path) {
                     gEncFilePath = path;
                     gEncSavePath.clear();
@@ -540,7 +537,7 @@ static void RenderEncrypt() {
     } else {
         if (CoffeeButton("Browse Image...")) {
             const char* filters[] = { "*.jpg", "*.jpeg", "*.png" };
-            const char* path = tinyfd_openFileDialog("Select image", INPUT_DIR.c_str(), 3, filters, "Image files", 0);
+            const char* path = tinyfd_openFileDialog("Select image", "", 3, filters, "Image files", 0);
             if (path) {
                 gEncFilePath = path;
                 gEncSavePath.clear();
@@ -786,8 +783,6 @@ int main() {
     ApplyCoffeeTheme();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
-    ensureDirectories();
-
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         ProcessDroppedFiles();

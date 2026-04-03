@@ -1,7 +1,4 @@
 *.exe
 build/
 .vscode/
-Input Files/
-Encrypted Files/
-Decrypted Files/
 imgui.ini

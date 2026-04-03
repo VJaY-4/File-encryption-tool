@@ -18,14 +18,6 @@ const std::string DEC_TEXT_DIR = "Decrypted Files/Text Files";
 const std::string DEC_IMG_DIR  = "Decrypted Files/Images";
 const std::string INPUT_DIR    = "Input Files";
 
-void ensureDirectories() {
-    fs::create_directories(ENC_TEXT_DIR);
-    fs::create_directories(ENC_IMG_DIR);
-    fs::create_directories(DEC_TEXT_DIR);
-    fs::create_directories(DEC_IMG_DIR);
-    fs::create_directories(INPUT_DIR);
-}
-
 void xorCipher(char* buf, size_t len, const std::string& key) {
     if (key.empty()) return;
     size_t ksz = key.size();

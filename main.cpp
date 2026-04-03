@@ -30,16 +30,6 @@ int main() {
          << "|    XOR Cipher File Encryption / Decryption     |\n"
          << "+================================================+\n";
 
-    try {
-        fs::create_directories(ENC_TEXT_DIR);
-        fs::create_directories(ENC_IMG_DIR);
-        fs::create_directories(DEC_TEXT_DIR);
-        fs::create_directories(DEC_IMG_DIR);
-        fs::create_directories(INPUT_DIR);
-    } catch (const fs::filesystem_error& e) {
-        cerr << "Warning: " << e.what() << "\n";
-    }
-
     while (true) {
         cout << "\n--- Menu ---\n  1. Encrypt\n  2. Decrypt\n  3. Exit\nChoice: ";
         int choice = readInt();

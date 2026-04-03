@@ -48,7 +48,6 @@ Most encryption tools are either command-line only or bloated with features you 
 | **Image Encryption** | Encrypt/decrypt `.jpg`, `.jpeg`, `.png` with dual-layer obfuscation |
 | **Key Validation** | Warns on weak keys (< 4 chars) with option to proceed or strengthen |
 | **Overwrite Protection** | Prompts before replacing existing files |
-| **Auto File Organization** | Creates `Input Files/`, `Encrypted Files/`, `Decrypted Files/` directories on startup |
 
 ---
 
@@ -121,7 +120,7 @@ Launch App  →  Encrypt / Decrypt  →  Text or Image  →  Pick File  →  Ent
 1. Run **encrypt_tool**
 2. Select **Encrypt** or **Decrypt**
 3. Choose file type
-4. Provide a file path or place files in `Input Files/`
+4. Provide a file path
 5. Enter key (input is masked)
 6. Output saved to the corresponding folder
 
@@ -177,10 +176,6 @@ The result is completely unrecognizable. Decryption reverses both steps in order
 │   ├── glfw/             GLFW windowing library
 │   ├── stb_image.h       Image loading
 │   └── tinyfiledialogs/  Native OS file dialogs
-│
-├── Input Files/          Drop files here to encrypt (auto-created at runtime)
-├── Encrypted Files/      Encrypted output (Text Files/ & Images/, auto-created at runtime)
-└── Decrypted Files/      Decrypted output (Text Files/ & Images/, auto-created at runtime)
 ```
 
 ---
