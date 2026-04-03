@@ -130,6 +130,7 @@ static Page  gTargetPage  = Page::Home;
 static int   gEncFileType = 0, gEncTextMode = 0;
 static char  gEncKey[256] = {}, gEncFilename[256] = {}, gEncContent[4096] = {};
 static std::string gEncFilePath;
+static std::string gEncSavePath;
 static bool  gShowEncKey = false;
 
 static int   gDecFileType = 0;
@@ -193,6 +194,45 @@ static bool IsImageFile(const std::string& path) {
     const std::string ext = ToLower(fs::path(path).extension().string());
     return ext == ".jpg" || ext == ".jpeg" || ext == ".png";
 }
+
+static std::string BuildEncryptedTextName(const std::string& sourceOrName, bool fromTypedName) {
+    std::string name = fromTypedName ? sourceOrName : fs::path(sourceOrName).filename().string();
+    if (name.size() < 4 || ToLower(name.substr(name.size() - 4)) != ".txt") name += ".txt";
+    return name;
+}
+
+static std::string BuildEncryptedImageName(const std::string& sourcePath) {
+    return fs::path(sourcePath).stem().string() + ".enc" + fs::path(sourcePath).extension().string();
+}
+
+static std::string PickEncryptSavePath(int fileType, int textMode, const std::string& filePath, const std::string& typedName) {
+    std::string outName;
+    std::string defaultDir;
+
+    if (fileType == 0) {
+        if (textMode == 0) {
+            if (filePath.empty()) return std::string();
+            outName = BuildEncryptedTextName(filePath, false);
+        } else {
+            if (typedName.empty()) return std::string();
+            outName = BuildEncryptedTextName(typedName, true);
+        }
+        defaultDir = ENC_TEXT_DIR;
+        const std::string defaultPath = defaultDir + "/" + outName;
+        const char* filters[] = { "*.txt" };
+        const char* picked = tinyfd_saveFileDialog("Save encrypted text as", defaultPath.c_str(), 1, filters, "Text files");
+        return picked ? std::string(picked) : std::string();
+    }
+
+    if (filePath.empty()) return std::string();
+    outName = BuildEncryptedImageName(filePath);
+    defaultDir = ENC_IMG_DIR;
+    const std::string defaultPath = defaultDir + "/" + outName;
+    const char* filters[] = { "*.jpg", "*.jpeg", "*.png" };
+    const char* picked = tinyfd_saveFileDialog("Save encrypted image as", defaultPath.c_str(), 3, filters, "Image files");
+    return picked ? std::string(picked) : std::string();
+}
+
 static std::string DecryptedOutputNameFromEncrypted(const std::string& encryptedPath, bool isImage) {
     std::string name = fs::path(encryptedPath).filename().string();
     if (isImage) {
@@ -243,10 +283,12 @@ static void ProcessDroppedFiles() {
                     gEncFileType = 0;
                     gEncTextMode = 0;
                     gEncFilePath = path;
+                    gEncSavePath.clear();
                     PushToast("Text file selected from drag and drop.");
                 } else if (IsImageFile(path)) {
                     gEncFileType = 1;
                     gEncFilePath = path;
+                    gEncSavePath.clear();
                     PushToast("Image file selected from drag and drop.");
                 } else {
                     PushToast("Unsupported file. Drop .txt, .jpg, .jpeg, or .png.", true);
@@ -418,6 +460,7 @@ static void RenderHome() {
     if (CoffeeButton("[ + ]  Encrypt", ImVec2(bw, bh))) {
         gTargetPage = Page::Encrypt;
         gEncFilePath.clear();
+        gEncSavePath.clear();
         memset(gEncKey, 0, sizeof(gEncKey));
         memset(gEncFilename, 0, sizeof(gEncFilename));
         memset(gEncContent, 0, sizeof(gEncContent));
@@ -454,8 +497,10 @@ static void RenderEncrypt() {
     ImGui::Separator(); ImGui::Dummy(ImVec2(0, 7));
 
     ImGui::Text("File type");
+    int prevEncType = gEncFileType;
     ImGui::RadioButton("Text File", &gEncFileType, 0); ImGui::SameLine();
     ImGui::RadioButton("Image File", &gEncFileType, 1);
+    if (gEncFileType != prevEncType) gEncSavePath.clear();
     ImGui::Dummy(ImVec2(0, 5));
     ImGui::TextDisabled("Tip: drag and drop a .txt, .jpg, .jpeg, or .png file into the app window.");
     ImGui::Dummy(ImVec2(0, 5));
@@ -467,14 +512,19 @@ static void RenderEncrypt() {
 
     if (gEncFileType == 0) {
         ImGui::Text("Source");
+        int prevTextMode = gEncTextMode;
         ImGui::RadioButton("Select existing file", &gEncTextMode, 0); ImGui::SameLine();
         ImGui::RadioButton("Type new content", &gEncTextMode, 1);
+        if (gEncTextMode != prevTextMode) gEncSavePath.clear();
         ImGui::Dummy(ImVec2(0, 5));
         if (gEncTextMode == 0) {
             if (CoffeeButton("Browse...")) {
                 const char* filters[] = { "*.txt" };
                 const char* path = tinyfd_openFileDialog("Select text file", INPUT_DIR.c_str(), 1, filters, "Text files", 0);
-                if (path) gEncFilePath = path;
+                if (path) {
+                    gEncFilePath = path;
+                    gEncSavePath.clear();
+                }
             }
             ImGui::SameLine();
             if (!gEncFilePath.empty()) ImGui::TextWrapped("%s", gEncFilePath.c_str());
@@ -491,7 +541,10 @@ static void RenderEncrypt() {
         if (CoffeeButton("Browse Image...")) {
             const char* filters[] = { "*.jpg", "*.jpeg", "*.png" };
             const char* path = tinyfd_openFileDialog("Select image", INPUT_DIR.c_str(), 3, filters, "Image files", 0);
-            if (path) gEncFilePath = path;
+            if (path) {
+                gEncFilePath = path;
+                gEncSavePath.clear();
+            }
         }
         ImGui::SameLine();
         if (!gEncFilePath.empty()) ImGui::TextWrapped("%s", gEncFilePath.c_str());
@@ -504,6 +557,7 @@ static void RenderEncrypt() {
     }
 
     ImGui::Dummy(ImVec2(0, 7));
+
     ImGui::Text("Encryption Key");
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 80);
     ImGui::InputText("##enckey", gEncKey, sizeof(gEncKey),
@@ -542,19 +596,29 @@ static void RenderEncrypt() {
             PushToast("Selected image does not exist.", true);
         } else {
             CipherMethod method = (gEncCipherMethod == 1) ? CipherMethod::AES256 : CipherMethod::XOR;
+            std::string savePath = gEncSavePath;
+            if (savePath.empty()) {
+                savePath = PickEncryptSavePath(gEncFileType, gEncTextMode, gEncFilePath, gEncFilename);
+            }
+            if (savePath.empty()) {
+                PushToast("Encryption cancelled: no save location selected.", true);
+                ImGui::PopStyleColor(3);
+                return;
+            }
             gProcessing = true;
             gOpProgress = 0.0f;
             gOpType = OpType::Encrypt;
             int ft = gEncFileType, tm = gEncTextMode;
             std::string fp = gEncFilePath, fn(gEncFilename), ct(gEncContent);
-            gOpFuture = std::async(std::launch::async, [fp, key, method, ft, tm, fn, ct]() {
+            gEncSavePath = savePath;
+            gOpFuture = std::async(std::launch::async, [fp, key, method, ft, tm, fn, ct, savePath]() {
                 if (ft == 0) {
                     if (tm == 0)
-                        gOpResultPath = encryptTextFile(fp, key, method, &gOpProgress);
+                        gOpResultPath = encryptTextFile(fp, key, savePath, method, &gOpProgress);
                     else
-                        gOpResultPath = encryptTextFromString(ct, fn, key, method, &gOpProgress);
+                        gOpResultPath = encryptTextFromString(ct, fn, key, savePath, method, &gOpProgress);
                 } else {
-                    gOpResultPath = encryptImageFile(fp, key, method, &gOpProgress);
+                    gOpResultPath = encryptImageFile(fp, key, savePath, method, &gOpProgress);
                 }
             });
         }
@@ -605,30 +669,6 @@ static void RenderDecrypt() {
         if (ImGui::SmallButton("Use list selection instead")) gDecDirectFilePath.clear();
         ImGui::Dummy(ImVec2(0, 5));
     }
-    if (CoffeeButton("Save As...")) {
-        std::string candidatePath;
-        if (!gDecDirectFilePath.empty()) {
-            candidatePath = gDecDirectFilePath;
-        } else if (gDecSelected >= 0 && gDecSelected < (int)gDecFileList.size()) {
-            candidatePath = ((gDecFileType == 0) ? ENC_TEXT_DIR : ENC_IMG_DIR) + "/" + gDecFileList[gDecSelected];
-        }
-        if (candidatePath.empty()) {
-            PushToast("Select or drop a file first.", true);
-        } else {
-            std::string picked = PickDecryptSavePath(candidatePath, gDecFileType == 1);
-            if (!picked.empty()) {
-                gDecSavePath = picked;
-                PushToast("Save destination selected.");
-            }
-        }
-    }
-    if (!gDecSavePath.empty()) {
-        ImGui::Text("Save destination:");
-        ImGui::TextWrapped("%s", gDecSavePath.c_str());
-    } else {
-        ImGui::TextDisabled("No save destination selected. You will be prompted when decrypting.");
-    }
-    ImGui::Dummy(ImVec2(0, 5));
 
     if (gDecFileList.empty()) {
         ImGui::TextDisabled("No encrypted files found. Click Refresh.");

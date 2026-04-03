@@ -180,6 +180,7 @@ static std::vector<char> aesDecryptBuffer(const std::vector<char>& data, const s
 std::string encryptTextFromString(const std::string& content,
                                   const std::string& filename,
                                   const std::string& key,
+                                  const std::string& outputPath,
                                   CipherMethod method,
                                   std::atomic<float>* progress) {
     if (content.empty()) throw std::runtime_error("Content is empty.");
@@ -199,13 +200,16 @@ std::string encryptTextFromString(const std::string& content,
     if (progress) *progress = 0.7f;
     std::string fname = filename;
     if (fname.size() < 4 || fname.substr(fname.size() - 4) != ".txt") fname += ".txt";
-    std::string outpath = ENC_TEXT_DIR + "/" + fname;
+    std::string outpath = outputPath.empty() ? (ENC_TEXT_DIR + "/" + fname) : outputPath;
+    fs::path outDir = fs::path(outpath).parent_path();
+    if (!outDir.empty()) fs::create_directories(outDir);
     writeBinaryFile(outpath, buf);
     if (progress) *progress = 1.0f;
     return outpath;
 }
 
 std::string encryptTextFile(const std::string& inputPath, const std::string& key,
+                            const std::string& outputPath,
                             CipherMethod method, std::atomic<float>* progress) {
     if (key.empty()) throw std::runtime_error("Key is empty.");
     if (progress) *progress = 0.2f;
@@ -221,7 +225,11 @@ std::string encryptTextFile(const std::string& inputPath, const std::string& key
         xorCipher(buf.data(), buf.size(), key);
     }
     if (progress) *progress = 0.7f;
-    std::string outpath = ENC_TEXT_DIR + "/" + fs::path(inputPath).filename().string();
+    std::string outpath = outputPath.empty()
+        ? (ENC_TEXT_DIR + "/" + fs::path(inputPath).filename().string())
+        : outputPath;
+    fs::path outDir = fs::path(outpath).parent_path();
+    if (!outDir.empty()) fs::create_directories(outDir);
     writeBinaryFile(outpath, buf);
     if (progress) *progress = 1.0f;
     return outpath;
@@ -258,6 +266,7 @@ std::string decryptTextFile(const std::string& encryptedPath,
 }
 
 std::string encryptImageFile(const std::string& inputPath, const std::string& key,
+                             const std::string& outputPath,
                              CipherMethod method, std::atomic<float>* progress) {
     if (key.empty()) throw std::runtime_error("Key is empty.");
     std::string ext = fs::path(inputPath).extension().string();
@@ -278,8 +287,12 @@ std::string encryptImageFile(const std::string& inputPath, const std::string& ke
         scrambleBytes(buf.data(), buf.size(), key);
     }
     if (progress) *progress = 0.7f;
-    std::string outpath = ENC_IMG_DIR + "/" + fs::path(inputPath).stem().string()
-                        + ".enc" + fs::path(inputPath).extension().string();
+    std::string outpath = outputPath.empty()
+        ? (ENC_IMG_DIR + "/" + fs::path(inputPath).stem().string()
+                        + ".enc" + fs::path(inputPath).extension().string())
+        : outputPath;
+    fs::path outDir = fs::path(outpath).parent_path();
+    if (!outDir.empty()) fs::create_directories(outDir);
     writeBinaryFile(outpath, buf);
     if (progress) *progress = 1.0f;
     return outpath;

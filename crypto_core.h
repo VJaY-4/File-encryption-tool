@@ -30,12 +30,14 @@ void trimTrailing(std::string& s);
 std::string encryptTextFromString(const std::string& content,
                                   const std::string& filename,
                                   const std::string& key,
+                                  const std::string& outputPath = "",
                                   CipherMethod method = CipherMethod::XOR,
                                   std::atomic<float>* progress = nullptr);
 
 // Encrypt an existing text file. Returns output path on success.
 std::string encryptTextFile(const std::string& inputPath,
                             const std::string& key,
+                            const std::string& outputPath = "",
                             CipherMethod method = CipherMethod::XOR,
                             std::atomic<float>* progress = nullptr);
 
@@ -52,6 +54,7 @@ std::string decryptTextFile(const std::string& encryptedPath,
 // Encrypt an image file. Returns output path on success.
 std::string encryptImageFile(const std::string& inputPath,
                              const std::string& key,
+                             const std::string& outputPath = "",
                              CipherMethod method = CipherMethod::XOR,
                              std::atomic<float>* progress = nullptr);
 

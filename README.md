@@ -41,7 +41,7 @@ Most encryption tools are either command-line only or bloated with features you 
 |---|---|
 | **GUI Application** | White/black themed desktop app with floating particles, smooth page transitions, native file dialogs |
 | **Drag & Drop Input** | Drop supported files directly into the app window on Encrypt/Decrypt pages for faster selection |
-| **Save As on Decrypt** | Decrypting text or image files in GUI prompts a native Save As dialog so you choose the exact destination |
+| **Save As Prompt** | Clicking Encrypt Now or Decrypt Now automatically opens a native Save As dialog to choose where the output file is saved |
 | **CLI Interface** | Interactive terminal menus, masked key input, colored output — great for scripting |
 | **Cipher Selection** | Supports both XOR and AES-256 for encryption and decryption |
 | **Text Encryption** | Encrypt/decrypt `.txt` files or create new encrypted content from scratch |
@@ -112,9 +112,9 @@ Launch App  →  Encrypt / Decrypt  →  Text or Image  →  Pick File  →  Ent
 2. Click **Encrypt** or **Decrypt** on the home screen
 3. Choose file type — Text or Image
 4. Browse for a file, drag and drop a file into the app, or type new content directly
-5. Enter your encryption key
-6. For decryption, choose where to save using Save As (or preselect Save As...)
-7. Hit the action button — output is saved to your chosen path
+5. Enter your encryption/decryption key
+6. Click **Encrypt Now** or **Decrypt Now** — a native Save As dialog will prompt you to choose where to save
+7. Done — output is saved to your chosen location
 
 ### CLI Workflow
 
