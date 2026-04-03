@@ -193,6 +193,27 @@ static bool IsImageFile(const std::string& path) {
     const std::string ext = ToLower(fs::path(path).extension().string());
     return ext == ".jpg" || ext == ".jpeg" || ext == ".png";
 }
+static std::string DecryptedOutputNameFromEncrypted(const std::string& encryptedPath, bool isImage) {
+    std::string name = fs::path(encryptedPath).filename().string();
+    if (isImage) {
+        const size_t pos = name.find(".enc");
+        if (pos != std::string::npos) name.erase(pos, 4);
+    }
+    return name;
+}
+static std::string PickDecryptSavePath(const std::string& encryptedPath, bool isImage) {
+    const std::string outName = DecryptedOutputNameFromEncrypted(encryptedPath, isImage);
+    std::string defaultPath = std::string(isImage ? DEC_IMG_DIR : DEC_TEXT_DIR) + "/" + outName;
+    if (isImage) {
+        const char* filters[] = { "*.jpg", "*.jpeg", "*.png" };
+        const char* picked = tinyfd_saveFileDialog("Save decrypted image as", defaultPath.c_str(), 3, filters, "Image files");
+        return picked ? std::string(picked) : std::string();
+    }
+    const char* filters[] = { "*.txt" };
+    const char* picked = tinyfd_saveFileDialog("Save decrypted text as", defaultPath.c_str(), 1, filters, "Text files");
+    return picked ? std::string(picked) : std::string();
+}
+static std::string gDecSavePath;
 
 static void GLFWDropCallback(GLFWwindow*, int count, const char** paths) {
     for (int i = 0; i < count; ++i) {
@@ -560,6 +581,7 @@ static void RenderDecrypt() {
         gDecSelected = -1;
         gDecResult.clear();
         gDecDirectFilePath.clear();
+        gDecSavePath.clear();
     }
     ImGui::Dummy(ImVec2(0, 5));
     ImGui::TextDisabled("Tip: drag and drop an encrypted file into the app window.");
@@ -583,6 +605,30 @@ static void RenderDecrypt() {
         if (ImGui::SmallButton("Use list selection instead")) gDecDirectFilePath.clear();
         ImGui::Dummy(ImVec2(0, 5));
     }
+    if (CoffeeButton("Save As...")) {
+        std::string candidatePath;
+        if (!gDecDirectFilePath.empty()) {
+            candidatePath = gDecDirectFilePath;
+        } else if (gDecSelected >= 0 && gDecSelected < (int)gDecFileList.size()) {
+            candidatePath = ((gDecFileType == 0) ? ENC_TEXT_DIR : ENC_IMG_DIR) + "/" + gDecFileList[gDecSelected];
+        }
+        if (candidatePath.empty()) {
+            PushToast("Select or drop a file first.", true);
+        } else {
+            std::string picked = PickDecryptSavePath(candidatePath, gDecFileType == 1);
+            if (!picked.empty()) {
+                gDecSavePath = picked;
+                PushToast("Save destination selected.");
+            }
+        }
+    }
+    if (!gDecSavePath.empty()) {
+        ImGui::Text("Save destination:");
+        ImGui::TextWrapped("%s", gDecSavePath.c_str());
+    } else {
+        ImGui::TextDisabled("No save destination selected. You will be prompted when decrypting.");
+    }
+    ImGui::Dummy(ImVec2(0, 5));
 
     if (gDecFileList.empty()) {
         ImGui::TextDisabled("No encrypted files found. Click Refresh.");
@@ -635,17 +681,27 @@ static void RenderDecrypt() {
             if (!fs::exists(fullPath)) {
                 PushToast("File no longer exists. Refresh the list.", true);
             } else {
+                std::string savePath = gDecSavePath;
+                if (savePath.empty()) {
+                    savePath = PickDecryptSavePath(fullPath, gDecFileType == 1);
+                }
+                if (savePath.empty()) {
+                    PushToast("Decryption cancelled: no save location selected.", true);
+                    ImGui::PopStyleColor(3);
+                    return;
+                }
                 gProcessing = true;
                 gOpProgress = 0.0f;
                 int ft = gDecFileType;
                 gOpType = (ft == 0) ? OpType::DecryptText : OpType::DecryptImage;
-                gOpFuture = std::async(std::launch::async, [fullPath, key, method, ft]() {
+                gDecSavePath = savePath;
+                gOpFuture = std::async(std::launch::async, [fullPath, key, method, ft, savePath]() {
                     if (ft == 0) {
                         std::string savedPath;
-                        gOpDecContent = decryptTextFile(fullPath, key, savedPath, method, &gOpProgress);
+                        gOpDecContent = decryptTextFile(fullPath, key, savedPath, savePath, method, &gOpProgress);
                         gOpResultPath = savedPath;
                     } else {
-                        gOpResultPath = decryptImageFile(fullPath, key, method, &gOpProgress);
+                        gOpResultPath = decryptImageFile(fullPath, key, savePath, method, &gOpProgress);
                     }
                 });
             }

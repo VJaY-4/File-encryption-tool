@@ -230,6 +230,7 @@ std::string encryptTextFile(const std::string& inputPath, const std::string& key
 std::string decryptTextFile(const std::string& encryptedPath,
                             const std::string& key,
                             std::string& savedPath,
+                            const std::string& outputPath,
                             CipherMethod method,
                             std::atomic<float>* progress) {
     if (key.empty()) throw std::runtime_error("Key is empty.");
@@ -246,7 +247,11 @@ std::string decryptTextFile(const std::string& encryptedPath,
         xorCipher(buf.data(), buf.size(), key);
     }
     if (progress) *progress = 0.7f;
-    savedPath = DEC_TEXT_DIR + "/" + fs::path(encryptedPath).filename().string();
+    savedPath = outputPath.empty()
+        ? (DEC_TEXT_DIR + "/" + fs::path(encryptedPath).filename().string())
+        : outputPath;
+    fs::path outDir = fs::path(savedPath).parent_path();
+    if (!outDir.empty()) fs::create_directories(outDir);
     writeBinaryFile(savedPath, buf);
     if (progress) *progress = 1.0f;
     return std::string(buf.begin(), buf.end());
@@ -281,6 +286,7 @@ std::string encryptImageFile(const std::string& inputPath, const std::string& ke
 }
 
 std::string decryptImageFile(const std::string& encryptedPath, const std::string& key,
+                             const std::string& outputPath,
                              CipherMethod method, std::atomic<float>* progress) {
     if (key.empty()) throw std::runtime_error("Key is empty.");
     if (progress) *progress = 0.2f;
@@ -300,7 +306,9 @@ std::string decryptImageFile(const std::string& encryptedPath, const std::string
     std::string outname = fs::path(encryptedPath).filename().string();
     auto pos = outname.find(".enc");
     if (pos != std::string::npos) outname.erase(pos, 4);
-    std::string outpath = DEC_IMG_DIR + "/" + outname;
+    std::string outpath = outputPath.empty() ? (DEC_IMG_DIR + "/" + outname) : outputPath;
+    fs::path outDir = fs::path(outpath).parent_path();
+    if (!outDir.empty()) fs::create_directories(outDir);
     writeBinaryFile(outpath, buf);
     if (progress) *progress = 1.0f;
     return outpath;

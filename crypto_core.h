@@ -43,6 +43,7 @@ std::string encryptTextFile(const std::string& inputPath,
 std::string decryptTextFile(const std::string& encryptedPath,
                             const std::string& key,
                             std::string& savedPath,
+                            const std::string& outputPath = "",
                             CipherMethod method = CipherMethod::XOR,
                             std::atomic<float>* progress = nullptr);
 
@@ -57,6 +58,7 @@ std::string encryptImageFile(const std::string& inputPath,
 // Decrypt an image file. Returns output path on success.
 std::string decryptImageFile(const std::string& encryptedPath,
                              const std::string& key,
+                             const std::string& outputPath = "",
                              CipherMethod method = CipherMethod::XOR,
                              std::atomic<float>* progress = nullptr);
 

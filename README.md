@@ -41,6 +41,7 @@ Most encryption tools are either command-line only or bloated with features you 
 |---|---|
 | **GUI Application** | White/black themed desktop app with floating particles, smooth page transitions, native file dialogs |
 | **Drag & Drop Input** | Drop supported files directly into the app window on Encrypt/Decrypt pages for faster selection |
+| **Save As on Decrypt** | Decrypting text or image files in GUI prompts a native Save As dialog so you choose the exact destination |
 | **CLI Interface** | Interactive terminal menus, masked key input, colored output — great for scripting |
 | **Cipher Selection** | Supports both XOR and AES-256 for encryption and decryption |
 | **Text Encryption** | Encrypt/decrypt `.txt` files or create new encrypted content from scratch |
@@ -78,16 +79,18 @@ cmake -S . -B build -G "MinGW Makefiles"
 cmake --build build
 ```
 
+Executables are emitted to the project root for easier double-click launching on Windows.
+
 ### Run
 
 ```bash
 # Launch the GUI
-./build/encrypt_tool_gui        # Linux/macOS
-.\build\encrypt_tool_gui.exe    # Windows
+./encrypt_tool_gui        # Linux/macOS
+.\encrypt_tool_gui.exe    # Windows
 
 # Launch the CLI
-./build/encrypt_tool            # Linux/macOS
-.\build\encrypt_tool.exe        # Windows
+./encrypt_tool            # Linux/macOS
+.\encrypt_tool.exe        # Windows
 ```
 
 > **CLI-only build** (no CMake needed):
@@ -110,7 +113,8 @@ Launch App  →  Encrypt / Decrypt  →  Text or Image  →  Pick File  →  Ent
 3. Choose file type — Text or Image
 4. Browse for a file, drag and drop a file into the app, or type new content directly
 5. Enter your encryption key
-6. Hit the action button — output saved automatically
+6. For decryption, choose where to save using Save As (or preselect Save As...)
+7. Hit the action button — output is saved to your chosen path
 
 ### CLI Workflow
 
@@ -174,9 +178,9 @@ The result is completely unrecognizable. Decryption reverses both steps in order
 │   ├── stb_image.h       Image loading
 │   └── tinyfiledialogs/  Native OS file dialogs
 │
-├── Input Files/          Drop files here to encrypt
-├── Encrypted Files/      Encrypted output (Text Files/ & Images/)
-└── Decrypted Files/      Decrypted output (Text Files/ & Images/)
+├── Input Files/          Drop files here to encrypt (.gitkeep tracked)
+├── Encrypted Files/      Encrypted output (Text Files/ & Images/, .gitkeep tracked)
+└── Decrypted Files/      Decrypted output (Text Files/ & Images/, .gitkeep tracked)
 ```
 
 ---
