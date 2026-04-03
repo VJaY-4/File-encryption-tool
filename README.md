@@ -178,9 +178,9 @@ The result is completely unrecognizable. Decryption reverses both steps in order
 │   ├── stb_image.h       Image loading
 │   └── tinyfiledialogs/  Native OS file dialogs
 │
-├── Input Files/          Drop files here to encrypt (.gitkeep tracked)
-├── Encrypted Files/      Encrypted output (Text Files/ & Images/, .gitkeep tracked)
-└── Decrypted Files/      Decrypted output (Text Files/ & Images/, .gitkeep tracked)
+├── Input Files/          Drop files here to encrypt (auto-created at runtime)
+├── Encrypted Files/      Encrypted output (Text Files/ & Images/, auto-created at runtime)
+└── Decrypted Files/      Decrypted output (Text Files/ & Images/, auto-created at runtime)
 ```
 
 ---

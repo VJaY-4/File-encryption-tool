@@ -1,14 +1,7 @@
 *.exe
 build/
 .vscode/
-Input Files/*
-Encrypted Files/Text Files/*
-Encrypted Files/Images/*
-Decrypted Files/Text Files/*
-Decrypted Files/Images/*
-!Input Files/.gitkeep
-!Encrypted Files/Text Files/.gitkeep
-!Encrypted Files/Images/.gitkeep
-!Decrypted Files/Text Files/.gitkeep
-!Decrypted Files/Images/.gitkeep
+Input Files/
+Encrypted Files/
+Decrypted Files/
 imgui.ini
