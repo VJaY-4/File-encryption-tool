@@ -35,11 +35,9 @@ static float smoothLerp(float a, float b, float speed) {
     return a + (b - a) * (1.0f - std::exp(-speed * ImGui::GetIO().DeltaTime));
 }
 
-static bool gDarkMode = false;
-
-static ImVec4 Accent()    { return gDarkMode ? ImVec4(1.00f, 1.00f, 1.00f, 1.00f) : ImVec4(0.05f, 0.05f, 0.05f, 1.00f); }
-static ImVec4 AccentDim() { return gDarkMode ? ImVec4(0.70f, 0.70f, 0.70f, 1.00f) : ImVec4(0.45f, 0.45f, 0.45f, 1.00f); }
-static ImVec4 AccentSub() { return gDarkMode ? ImVec4(0.55f, 0.55f, 0.55f, 1.00f) : ImVec4(0.55f, 0.55f, 0.55f, 1.00f); }
+static ImVec4 Accent()    { return ImVec4(0.05f, 0.05f, 0.05f, 1.00f); }
+static ImVec4 AccentDim() { return ImVec4(0.45f, 0.45f, 0.45f, 1.00f); }
+static ImVec4 AccentSub() { return ImVec4(0.55f, 0.55f, 0.55f, 1.00f); }
 
 static void ApplyTheme() {
     ImGuiStyle& s = ImGui::GetStyle();
@@ -57,46 +55,7 @@ static void ApplyTheme() {
     s.PopupBorderSize  = 1.0f;
 
     ImVec4* c = s.Colors;
-    if (gDarkMode) {
-        c[ImGuiCol_WindowBg]             = ImVec4(0.05f, 0.05f, 0.07f, 1.00f);
-        c[ImGuiCol_ChildBg]              = ImVec4(0.07f, 0.08f, 0.10f, 1.00f);
-        c[ImGuiCol_PopupBg]              = ImVec4(0.07f, 0.07f, 0.09f, 0.96f);
-        c[ImGuiCol_Text]                 = ImVec4(0.85f, 0.85f, 0.85f, 1.00f);
-        c[ImGuiCol_TextDisabled]         = ImVec4(0.45f, 0.45f, 0.45f, 1.00f);
-        c[ImGuiCol_Border]               = ImVec4(1.00f, 1.00f, 1.00f, 0.18f);
-        c[ImGuiCol_FrameBg]              = ImVec4(0.09f, 0.10f, 0.12f, 1.00f);
-        c[ImGuiCol_FrameBgHovered]       = ImVec4(0.12f, 0.14f, 0.16f, 1.00f);
-        c[ImGuiCol_FrameBgActive]        = ImVec4(0.16f, 0.18f, 0.20f, 1.00f);
-        c[ImGuiCol_TitleBg]              = ImVec4(0.04f, 0.05f, 0.06f, 1.00f);
-        c[ImGuiCol_TitleBgActive]        = ImVec4(0.05f, 0.07f, 0.08f, 1.00f);
-        c[ImGuiCol_TitleBgCollapsed]     = ImVec4(0.04f, 0.05f, 0.06f, 0.75f);
-        c[ImGuiCol_Button]               = ImVec4(1.00f, 1.00f, 1.00f, 0.15f);
-        c[ImGuiCol_ButtonHovered]        = ImVec4(1.00f, 1.00f, 1.00f, 0.25f);
-        c[ImGuiCol_ButtonActive]         = ImVec4(1.00f, 1.00f, 1.00f, 0.35f);
-        c[ImGuiCol_Header]               = ImVec4(1.00f, 1.00f, 1.00f, 0.12f);
-        c[ImGuiCol_HeaderHovered]        = ImVec4(1.00f, 1.00f, 1.00f, 0.22f);
-        c[ImGuiCol_HeaderActive]         = ImVec4(1.00f, 1.00f, 1.00f, 0.32f);
-        c[ImGuiCol_Tab]                  = ImVec4(0.07f, 0.09f, 0.10f, 1.00f);
-        c[ImGuiCol_TabHovered]           = ImVec4(1.00f, 1.00f, 1.00f, 0.22f);
-        c[ImGuiCol_TabActive]            = ImVec4(1.00f, 1.00f, 1.00f, 0.18f);
-        c[ImGuiCol_TabUnfocused]         = ImVec4(0.06f, 0.07f, 0.08f, 1.00f);
-        c[ImGuiCol_TabUnfocusedActive]   = ImVec4(0.07f, 0.09f, 0.10f, 1.00f);
-        c[ImGuiCol_Separator]            = ImVec4(1.00f, 1.00f, 1.00f, 0.15f);
-        c[ImGuiCol_SeparatorHovered]     = ImVec4(1.00f, 1.00f, 1.00f, 0.35f);
-        c[ImGuiCol_SeparatorActive]      = ImVec4(1.00f, 1.00f, 1.00f, 0.55f);
-        c[ImGuiCol_ScrollbarBg]          = ImVec4(0.04f, 0.05f, 0.06f, 0.50f);
-        c[ImGuiCol_ScrollbarGrab]        = ImVec4(0.55f, 0.55f, 0.55f, 0.62f);
-        c[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.70f, 0.70f, 0.70f, 0.82f);
-        c[ImGuiCol_ScrollbarGrabActive]  = ImVec4(0.85f, 0.85f, 0.85f, 1.00f);
-        c[ImGuiCol_CheckMark]            = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-        c[ImGuiCol_SliderGrab]           = ImVec4(0.75f, 0.75f, 0.75f, 0.82f);
-        c[ImGuiCol_SliderGrabActive]     = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-        c[ImGuiCol_ResizeGrip]           = ImVec4(0.55f, 0.55f, 0.55f, 0.32f);
-        c[ImGuiCol_ResizeGripHovered]    = ImVec4(0.70f, 0.70f, 0.70f, 0.52f);
-        c[ImGuiCol_ResizeGripActive]     = ImVec4(0.85f, 0.85f, 0.85f, 0.72f);
-        c[ImGuiCol_NavHighlight]         = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-    } else {
-        c[ImGuiCol_WindowBg]             = ImVec4(0.97f, 0.97f, 0.97f, 1.00f);
+    c[ImGuiCol_WindowBg]             = ImVec4(0.97f, 0.97f, 0.97f, 1.00f);
         c[ImGuiCol_ChildBg]              = ImVec4(0.92f, 0.92f, 0.92f, 1.00f);
         c[ImGuiCol_PopupBg]              = ImVec4(0.95f, 0.95f, 0.95f, 0.96f);
         c[ImGuiCol_Text]                 = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
@@ -133,7 +92,6 @@ static void ApplyTheme() {
         c[ImGuiCol_ResizeGripHovered]    = ImVec4(0.40f, 0.40f, 0.40f, 0.60f);
         c[ImGuiCol_ResizeGripActive]     = ImVec4(0.20f, 0.20f, 0.20f, 0.90f);
         c[ImGuiCol_NavHighlight]         = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
-    }
 }
 
 struct Toast { std::string message; float timer; bool isError; };
@@ -158,7 +116,7 @@ static void RenderToasts() {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(24, 12));
         ImGui::PushStyleColor(ImGuiCol_WindowBg, it->isError
             ? ImVec4(0.60f, 0.10f, 0.10f, 1.0f)
-            : (gDarkMode ? ImVec4(0.12f, 0.12f, 0.14f, 1.0f) : ImVec4(0.20f, 0.20f, 0.20f, 1.0f)));
+            : ImVec4(0.20f, 0.20f, 0.20f, 1.0f));
         ImGui::Begin(label, nullptr,
             ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
             ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoFocusOnAppearing |
@@ -529,15 +487,6 @@ static void RenderHome() {
     ImGui::PushStyleColor(ImGuiCol_Text, AccentSub());
     TextCentered(".txt  |  .jpg  |  .jpeg  |  .png", cx);
     ImGui::PopStyleColor();
-
-    // Theme toggle - bottom right
-    ImGui::SetCursorPos(ImVec2(cx - 180, cy - 37));
-    ImGui::PushStyleColor(ImGuiCol_Text, AccentSub());
-    if (ImGui::SmallButton(gDarkMode ? "[ Dark Mode ]" : "[ Light Mode ]")) {
-        gDarkMode = !gDarkMode;
-        ApplyTheme();
-    }
-    ImGui::PopStyleColor();
 }
 
 static void RenderEncrypt() {
@@ -893,7 +842,7 @@ int main() {
         RenderToasts();
 
         ImGui::Render();
-        { ImVec4 bg = gDarkMode ? ImVec4(0.05f,0.05f,0.07f,1.f) : ImVec4(0.97f,0.97f,0.97f,1.f); glClearColor(bg.x,bg.y,bg.z,bg.w); }
+        { glClearColor(0.97f, 0.97f, 0.97f, 1.0f); }
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
