@@ -16,7 +16,7 @@
 <!-- Replace the path below with your actual screenshot -->
 <img src="screenshot.png" alt="File Encryption Tool – Home Screen" width="720" />
 
-*Dark mode (default) with green neon accents and light mode with a clean monochrome aesthetic — toggle anytime.*
+*Clean monochrome light theme by default, with an optional dark mode — toggle anytime.*
 
 </div>
 
@@ -27,7 +27,7 @@
 Most encryption tools are either command-line only or bloated with features you don't need. **File Encryption Tool** gives you a polished desktop experience in under 2 MB — no installers, no dependencies to hunt down, just build and run.
 
 - **Beautiful GUI** — Dear ImGui-powered interface with dark and light themes, rounded corners, and subtle particle animations.
-- **Dark / Light Mode** — Toggle between a green-on-black hacker aesthetic and a clean monochrome light theme.
+- **Dark / Light Mode** — Toggle between a clean white theme (default) and a sleek dark theme.
 - **Dual Interface** — Use the graphical app or drop down to the CLI for scripting and automation.
 - **Text & Image Support** — Encrypt `.txt` files and `.jpg`/`.jpeg`/`.png` images with a single key.
 - **Cipher Options** — Choose between **XOR** and **AES-256** in both Encrypt and Decrypt flows.
@@ -47,7 +47,7 @@ Most encryption tools are either command-line only or bloated with features you 
 | **Cipher Selection** | Supports both XOR and AES-256 for encryption and decryption |
 | **Text Encryption** | Encrypt/decrypt `.txt` files or create new encrypted content from scratch |
 | **Image Encryption** | Encrypt/decrypt `.jpg`, `.jpeg`, `.png` with dual-layer obfuscation |
-| **Dark / Light Mode** | Toggle between green neon dark theme and clean monochrome light theme at runtime |
+| **Dark / Light Mode** | Toggle between clean monochrome light theme (default) and dark theme at runtime |
 | **Key Validation** | Warns on weak keys (< 4 chars) with option to proceed or strengthen |
 | **Overwrite Protection** | Prompts before replacing existing files |
 
