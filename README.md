@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🔐 CryptVault
+# 🔐 File Encryption Tool
 
 ### Lightweight File Encryption Suite for Windows
 
@@ -14,7 +14,7 @@
 ---
 
 <!-- Replace the path below with your actual screenshot -->
-<img src="screenshot.png" alt="CryptVault – Home Screen" width="720" />
+<img src="screenshot.png" alt="File Encryption Tool – Home Screen" width="720" />
 
 *Dark mode (default) with green neon accents and light mode with a clean monochrome aesthetic — toggle anytime.*
 
@@ -22,9 +22,9 @@
 
 ---
 
-## Why CryptVault?
+## Why File Encryption Tool?
 
-Most encryption tools are either command-line only or bloated with features you don't need. **CryptVault** gives you a polished desktop experience in under 2 MB — no installers, no dependencies to hunt down, just build and run.
+Most encryption tools are either command-line only or bloated with features you don't need. **File Encryption Tool** gives you a polished desktop experience in under 2 MB — no installers, no dependencies to hunt down, just build and run.
 
 - **Beautiful GUI** — Dear ImGui-powered interface with dark and light themes, rounded corners, and subtle particle animations.
 - **Dark / Light Mode** — Toggle between a green-on-black hacker aesthetic and a clean monochrome light theme.
@@ -158,7 +158,7 @@ Images go through **two passes** for stronger visual obfuscation:
 
 The result is completely unrecognizable. Decryption reverses both steps in order.
 
-> **Disclaimer:** XOR with a short repeating key is not cryptographically secure. AES-256 is the stronger option in this app. CryptVault is a **learning project** demonstrating encryption concepts — not intended for protecting highly sensitive production data.
+> **Disclaimer:** XOR with a short repeating key is not cryptographically secure. AES-256 is the stronger option in this app. File Encryption Tool is a **learning project** demonstrating encryption concepts — not intended for protecting highly sensitive production data.
 
 ---
 
@@ -204,6 +204,6 @@ The result is completely unrecognizable. Decryption reverses both steps in order
 
 **Built with C++ and curiosity.**
 
-[⬆ Back to Top](#-cryptvault)
+[⬆ Back to Top](#-file-encryption-tool)
 
 </div>
