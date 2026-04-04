@@ -22,7 +22,7 @@
 
 ---
 
-## Why File Encryption Tool?
+## What Makes It Different?
 
 Most encryption tools are either command-line only or bloated with features you don't need. **File Encryption Tool** gives you a polished desktop experience in under 2 MB — no installers, no dependencies to hunt down, just build and run.
 
