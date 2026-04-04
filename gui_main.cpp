@@ -35,56 +35,105 @@ static float smoothLerp(float a, float b, float speed) {
     return a + (b - a) * (1.0f - std::exp(-speed * ImGui::GetIO().DeltaTime));
 }
 
-static void ApplyCoffeeTheme() {
+static bool gDarkMode = true;
+
+static ImVec4 Accent()    { return gDarkMode ? ImVec4(0.00f, 1.00f, 0.50f, 1.00f) : ImVec4(0.05f, 0.05f, 0.05f, 1.00f); }
+static ImVec4 AccentDim() { return gDarkMode ? ImVec4(0.20f, 0.55f, 0.38f, 1.00f) : ImVec4(0.45f, 0.45f, 0.45f, 1.00f); }
+static ImVec4 AccentSub() { return gDarkMode ? ImVec4(0.00f, 0.55f, 0.28f, 1.00f) : ImVec4(0.55f, 0.55f, 0.55f, 1.00f); }
+
+static void ApplyTheme() {
     ImGuiStyle& s = ImGui::GetStyle();
-    s.WindowRounding = s.FrameRounding = s.GrabRounding = s.TabRounding =
-    s.PopupRounding  = s.ChildRounding = s.ScrollbarRounding = 12.0f;
-    s.WindowRounding = 18.0f;
+    s.WindowRounding = 10.0f;
+    s.FrameRounding = s.GrabRounding = s.TabRounding =
+    s.PopupRounding = s.ChildRounding = s.ScrollbarRounding = 6.0f;
     s.WindowPadding  = ImVec2(27, 22);
     s.FramePadding   = ImVec2(21, 10);
     s.ItemSpacing    = ImVec2(15, 12);
     s.ItemInnerSpacing = ImVec2(12, 7);
     s.ScrollbarSize  = 18.0f;
     s.GrabMinSize    = 15.0f;
-    s.WindowBorderSize = s.FrameBorderSize = s.PopupBorderSize = 0.0f;
+    s.WindowBorderSize = 0.0f;
+    s.FrameBorderSize  = 1.0f;
+    s.PopupBorderSize  = 1.0f;
 
     ImVec4* c = s.Colors;
-    c[ImGuiCol_WindowBg]             = ImVec4(0.97f, 0.97f, 0.97f, 1.00f);
-    c[ImGuiCol_ChildBg]              = ImVec4(0.93f, 0.93f, 0.93f, 1.00f);
-    c[ImGuiCol_PopupBg]              = ImVec4(0.95f, 0.95f, 0.95f, 0.96f);
-    c[ImGuiCol_Text]                 = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
-    c[ImGuiCol_TextDisabled]         = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
-    c[ImGuiCol_FrameBg]              = ImVec4(0.90f, 0.90f, 0.90f, 1.00f);
-    c[ImGuiCol_FrameBgHovered]       = ImVec4(0.85f, 0.85f, 0.85f, 1.00f);
-    c[ImGuiCol_FrameBgActive]        = ImVec4(0.80f, 0.80f, 0.80f, 1.00f);
-    c[ImGuiCol_TitleBg]              = ImVec4(0.92f, 0.92f, 0.92f, 1.00f);
-    c[ImGuiCol_TitleBgActive]        = ImVec4(0.88f, 0.88f, 0.88f, 1.00f);
-    c[ImGuiCol_TitleBgCollapsed]     = ImVec4(0.92f, 0.92f, 0.92f, 0.75f);
-    c[ImGuiCol_Button]               = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
-    c[ImGuiCol_ButtonHovered]        = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
-    c[ImGuiCol_ButtonActive]         = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
-    c[ImGuiCol_Header]               = ImVec4(0.85f, 0.85f, 0.85f, 1.00f);
-    c[ImGuiCol_HeaderHovered]        = ImVec4(0.78f, 0.78f, 0.78f, 1.00f);
-    c[ImGuiCol_HeaderActive]         = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
-    c[ImGuiCol_Tab]                  = ImVec4(0.90f, 0.90f, 0.90f, 1.00f);
-    c[ImGuiCol_TabHovered]           = ImVec4(0.80f, 0.80f, 0.80f, 1.00f);
-    c[ImGuiCol_TabActive]            = ImVec4(0.85f, 0.85f, 0.85f, 1.00f);
-    c[ImGuiCol_TabUnfocused]         = ImVec4(0.92f, 0.92f, 0.92f, 1.00f);
-    c[ImGuiCol_TabUnfocusedActive]   = ImVec4(0.88f, 0.88f, 0.88f, 1.00f);
-    c[ImGuiCol_Separator]            = ImVec4(0.70f, 0.70f, 0.70f, 0.50f);
-    c[ImGuiCol_SeparatorHovered]     = ImVec4(0.40f, 0.40f, 0.40f, 0.70f);
-    c[ImGuiCol_SeparatorActive]      = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
-    c[ImGuiCol_ScrollbarBg]          = ImVec4(0.95f, 0.95f, 0.95f, 0.50f);
-    c[ImGuiCol_ScrollbarGrab]        = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
-    c[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.45f, 0.45f, 0.45f, 1.00f);
-    c[ImGuiCol_ScrollbarGrabActive]  = ImVec4(0.30f, 0.30f, 0.30f, 1.00f);
-    c[ImGuiCol_CheckMark]            = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
-    c[ImGuiCol_SliderGrab]           = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
-    c[ImGuiCol_SliderGrabActive]     = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
-    c[ImGuiCol_ResizeGrip]           = ImVec4(0.60f, 0.60f, 0.60f, 0.40f);
-    c[ImGuiCol_ResizeGripHovered]    = ImVec4(0.40f, 0.40f, 0.40f, 0.60f);
-    c[ImGuiCol_ResizeGripActive]     = ImVec4(0.20f, 0.20f, 0.20f, 0.90f);
-    c[ImGuiCol_NavHighlight]         = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+    if (gDarkMode) {
+        c[ImGuiCol_WindowBg]             = ImVec4(0.05f, 0.05f, 0.07f, 1.00f);
+        c[ImGuiCol_ChildBg]              = ImVec4(0.07f, 0.08f, 0.10f, 1.00f);
+        c[ImGuiCol_PopupBg]              = ImVec4(0.07f, 0.07f, 0.09f, 0.96f);
+        c[ImGuiCol_Text]                 = ImVec4(0.80f, 0.84f, 0.82f, 1.00f);
+        c[ImGuiCol_TextDisabled]         = ImVec4(0.35f, 0.42f, 0.38f, 1.00f);
+        c[ImGuiCol_Border]               = ImVec4(0.00f, 1.00f, 0.50f, 0.18f);
+        c[ImGuiCol_FrameBg]              = ImVec4(0.09f, 0.10f, 0.12f, 1.00f);
+        c[ImGuiCol_FrameBgHovered]       = ImVec4(0.12f, 0.14f, 0.16f, 1.00f);
+        c[ImGuiCol_FrameBgActive]        = ImVec4(0.16f, 0.18f, 0.20f, 1.00f);
+        c[ImGuiCol_TitleBg]              = ImVec4(0.04f, 0.05f, 0.06f, 1.00f);
+        c[ImGuiCol_TitleBgActive]        = ImVec4(0.05f, 0.07f, 0.08f, 1.00f);
+        c[ImGuiCol_TitleBgCollapsed]     = ImVec4(0.04f, 0.05f, 0.06f, 0.75f);
+        c[ImGuiCol_Button]               = ImVec4(0.00f, 0.70f, 0.35f, 0.28f);
+        c[ImGuiCol_ButtonHovered]        = ImVec4(0.00f, 0.85f, 0.43f, 0.45f);
+        c[ImGuiCol_ButtonActive]         = ImVec4(0.00f, 1.00f, 0.50f, 0.60f);
+        c[ImGuiCol_Header]               = ImVec4(0.00f, 0.65f, 0.33f, 0.22f);
+        c[ImGuiCol_HeaderHovered]        = ImVec4(0.00f, 0.75f, 0.38f, 0.38f);
+        c[ImGuiCol_HeaderActive]         = ImVec4(0.00f, 0.85f, 0.43f, 0.52f);
+        c[ImGuiCol_Tab]                  = ImVec4(0.07f, 0.09f, 0.10f, 1.00f);
+        c[ImGuiCol_TabHovered]           = ImVec4(0.00f, 0.65f, 0.33f, 0.42f);
+        c[ImGuiCol_TabActive]            = ImVec4(0.00f, 0.55f, 0.28f, 0.38f);
+        c[ImGuiCol_TabUnfocused]         = ImVec4(0.06f, 0.07f, 0.08f, 1.00f);
+        c[ImGuiCol_TabUnfocusedActive]   = ImVec4(0.07f, 0.09f, 0.10f, 1.00f);
+        c[ImGuiCol_Separator]            = ImVec4(0.00f, 1.00f, 0.50f, 0.22f);
+        c[ImGuiCol_SeparatorHovered]     = ImVec4(0.00f, 1.00f, 0.50f, 0.42f);
+        c[ImGuiCol_SeparatorActive]      = ImVec4(0.00f, 1.00f, 0.50f, 0.72f);
+        c[ImGuiCol_ScrollbarBg]          = ImVec4(0.04f, 0.05f, 0.06f, 0.50f);
+        c[ImGuiCol_ScrollbarGrab]        = ImVec4(0.00f, 0.55f, 0.28f, 0.62f);
+        c[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.00f, 0.70f, 0.35f, 0.82f);
+        c[ImGuiCol_ScrollbarGrabActive]  = ImVec4(0.00f, 0.85f, 0.43f, 1.00f);
+        c[ImGuiCol_CheckMark]            = ImVec4(0.00f, 1.00f, 0.50f, 1.00f);
+        c[ImGuiCol_SliderGrab]           = ImVec4(0.00f, 0.75f, 0.38f, 0.82f);
+        c[ImGuiCol_SliderGrabActive]     = ImVec4(0.00f, 1.00f, 0.50f, 1.00f);
+        c[ImGuiCol_ResizeGrip]           = ImVec4(0.00f, 0.55f, 0.28f, 0.32f);
+        c[ImGuiCol_ResizeGripHovered]    = ImVec4(0.00f, 0.70f, 0.35f, 0.52f);
+        c[ImGuiCol_ResizeGripActive]     = ImVec4(0.00f, 0.85f, 0.43f, 0.72f);
+        c[ImGuiCol_NavHighlight]         = ImVec4(0.00f, 1.00f, 0.50f, 1.00f);
+    } else {
+        c[ImGuiCol_WindowBg]             = ImVec4(0.97f, 0.97f, 0.97f, 1.00f);
+        c[ImGuiCol_ChildBg]              = ImVec4(0.92f, 0.92f, 0.92f, 1.00f);
+        c[ImGuiCol_PopupBg]              = ImVec4(0.95f, 0.95f, 0.95f, 0.96f);
+        c[ImGuiCol_Text]                 = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
+        c[ImGuiCol_TextDisabled]         = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+        c[ImGuiCol_Border]               = ImVec4(0.70f, 0.70f, 0.70f, 0.35f);
+        c[ImGuiCol_FrameBg]              = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+        c[ImGuiCol_FrameBgHovered]       = ImVec4(0.92f, 0.92f, 0.92f, 1.00f);
+        c[ImGuiCol_FrameBgActive]        = ImVec4(0.85f, 0.85f, 0.85f, 1.00f);
+        c[ImGuiCol_TitleBg]              = ImVec4(0.92f, 0.92f, 0.92f, 1.00f);
+        c[ImGuiCol_TitleBgActive]        = ImVec4(0.88f, 0.88f, 0.88f, 1.00f);
+        c[ImGuiCol_TitleBgCollapsed]     = ImVec4(0.92f, 0.92f, 0.92f, 0.75f);
+        c[ImGuiCol_Button]               = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+        c[ImGuiCol_ButtonHovered]        = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
+        c[ImGuiCol_ButtonActive]         = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
+        c[ImGuiCol_Header]               = ImVec4(0.85f, 0.85f, 0.85f, 1.00f);
+        c[ImGuiCol_HeaderHovered]        = ImVec4(0.78f, 0.78f, 0.78f, 1.00f);
+        c[ImGuiCol_HeaderActive]         = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
+        c[ImGuiCol_Tab]                  = ImVec4(0.90f, 0.90f, 0.90f, 1.00f);
+        c[ImGuiCol_TabHovered]           = ImVec4(0.80f, 0.80f, 0.80f, 1.00f);
+        c[ImGuiCol_TabActive]            = ImVec4(0.85f, 0.85f, 0.85f, 1.00f);
+        c[ImGuiCol_TabUnfocused]         = ImVec4(0.92f, 0.92f, 0.92f, 1.00f);
+        c[ImGuiCol_TabUnfocusedActive]   = ImVec4(0.88f, 0.88f, 0.88f, 1.00f);
+        c[ImGuiCol_Separator]            = ImVec4(0.70f, 0.70f, 0.70f, 0.50f);
+        c[ImGuiCol_SeparatorHovered]     = ImVec4(0.40f, 0.40f, 0.40f, 0.70f);
+        c[ImGuiCol_SeparatorActive]      = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+        c[ImGuiCol_ScrollbarBg]          = ImVec4(0.95f, 0.95f, 0.95f, 0.50f);
+        c[ImGuiCol_ScrollbarGrab]        = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
+        c[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.45f, 0.45f, 0.45f, 1.00f);
+        c[ImGuiCol_ScrollbarGrabActive]  = ImVec4(0.30f, 0.30f, 0.30f, 1.00f);
+        c[ImGuiCol_CheckMark]            = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
+        c[ImGuiCol_SliderGrab]           = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+        c[ImGuiCol_SliderGrabActive]     = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
+        c[ImGuiCol_ResizeGrip]           = ImVec4(0.60f, 0.60f, 0.60f, 0.40f);
+        c[ImGuiCol_ResizeGripHovered]    = ImVec4(0.40f, 0.40f, 0.40f, 0.60f);
+        c[ImGuiCol_ResizeGripActive]     = ImVec4(0.20f, 0.20f, 0.20f, 0.90f);
+        c[ImGuiCol_NavHighlight]         = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+    }
 }
 
 struct Toast { std::string message; float timer; bool isError; };
@@ -108,14 +157,14 @@ static void RenderToasts() {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 15.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(24, 12));
         ImGui::PushStyleColor(ImGuiCol_WindowBg, it->isError
-            ? ImVec4(0.90f, 0.30f, 0.30f, 1.0f)
-            : ImVec4(0.20f, 0.20f, 0.20f, 1.0f));
+            ? ImVec4(0.60f, 0.10f, 0.10f, 1.0f)
+            : (gDarkMode ? ImVec4(0.02f, 0.14f, 0.08f, 1.0f) : ImVec4(0.20f, 0.20f, 0.20f, 1.0f)));
         ImGui::Begin(label, nullptr,
             ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
             ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoFocusOnAppearing |
             ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMove);
         ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Text, gDarkMode ? ImVec4(0.0f, 1.0f, 0.5f, 1.0f) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
         ImGui::TextUnformatted(it->message.c_str());
         ImGui::PopStyleColor();
         ImGui::PopStyleVar();
@@ -131,6 +180,7 @@ enum class Page { Home, Encrypt, Decrypt };
 static Page  gCurrentPage = Page::Home;
 static float gPageAlpha   = 0.0f;
 static Page  gTargetPage  = Page::Home;
+static ImFont* gTitleFont = nullptr;
 
 static int   gEncFileType = 0, gEncTextMode = 0;
 static char  gEncKey[256] = {}, gEncFilename[256] = {}, gEncContent[4096] = {};
@@ -349,8 +399,8 @@ static void CheckAsyncOp() {
 }
 
 static bool CoffeeButton(const char* label, ImVec2 size = ImVec2(0, 0)) {
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 12.0f);
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0f);
+    ImGui::PushStyleColor(ImGuiCol_Text, gDarkMode ? ImVec4(0.00f, 1.00f, 0.50f, 1.0f) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
     bool clicked = ImGui::Button(label, size);
     ImGui::PopStyleColor();
     ImGui::PopStyleVar();
@@ -360,6 +410,13 @@ static bool CoffeeButton(const char* label, ImVec2 size = ImVec2(0, 0)) {
 static void TextCentered(const char* text, float regionWidth) {
     ImGui::SetCursorPosX((regionWidth - ImGui::CalcTextSize(text).x) * 0.5f);
     ImGui::TextUnformatted(text);
+}
+
+static void SectionLabel(const char* label) {
+    ImGui::PushStyleColor(ImGuiCol_Text, Accent());
+    ImGui::Text("// %s", label);
+    ImGui::PopStyleColor();
+    ImGui::Dummy(ImVec2(0, 4));
 }
 
 struct Particle { float x, y, speed, size, alpha; };
@@ -383,27 +440,16 @@ static void RenderParticles(ImDrawList* dl, ImVec2 origin, float w, float h) {
         p.y -= p.speed * dt;
         if (p.y < -10.0f) { p.y = h + 10.0f; p.x = (float)(rand() % std::max((int)w, 1)); }
         float flicker = p.alpha + 0.05f * std::sin(p.y * 0.05f);
+        ImVec4 ac = Accent();
         dl->AddCircleFilled(ImVec2(origin.x + p.x, origin.y + p.y), p.size,
-            ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, flicker)));
+            ImGui::ColorConvertFloat4ToU32(ImVec4(ac.x, ac.y, ac.z, flicker * 0.5f)));
     }
-}
-
-static void DrawLockIcon(ImDrawList* dl, ImVec2 center, float scale) {
-    ImU32 col      = ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.35f));
-    ImU32 colInner = ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.12f));
-    float bw = 22.0f * scale, bh = 18.0f * scale;
-    ImVec2 bodyTL(center.x - bw * 0.5f, center.y - bh * 0.3f);
-    ImVec2 bodyBR(center.x + bw * 0.5f, center.y + bh * 0.7f);
-    dl->AddRectFilled(bodyTL, bodyBR, colInner, 4.0f * scale);
-    dl->AddRect(bodyTL, bodyBR, col, 4.0f * scale, 0, 1.5f * scale);
-    dl->PathArcTo(ImVec2(center.x, bodyTL.y), 10.0f * scale, 3.14159f, 0.0f, 20);
-    dl->PathStroke(col, 0, 2.0f * scale);
-    dl->AddCircleFilled(ImVec2(center.x, center.y + bh * 0.1f), 2.5f * scale, col);
 }
 
 static void DrawHexStream(ImDrawList* dl, ImVec2 pos, float width, float time, float alpha) {
     const char* hexChars = "0123456789ABCDEF";
-    ImU32 col = ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, alpha));
+    ImVec4 ac = Accent();
+    ImU32 col = ImGui::ColorConvertFloat4ToU32(ImVec4(ac.x, ac.y, ac.z, alpha));
     float spacing = 27.0f;
     int count = (int)(width / spacing);
     for (int i = 0; i < count; ++i) {
@@ -421,12 +467,17 @@ static void RenderHome() {
     static float gTime = 0.0f;
     gTime += ImGui::GetIO().DeltaTime;
 
-    if (!gParticlesInit) InitParticles(cx, cy);
+    static float lastW = 0, lastH = 0;
+    if (!gParticlesInit || cx != lastW || cy != lastH) {
+        InitParticles(cx, cy);
+        lastW = cx; lastH = cy;
+    }
     RenderParticles(dl, winPos, cx, cy);
 
     float cornerLen   = 60.0f;
-    float cornerAlpha = 0.12f + 0.05f * std::sin(gTime * 0.8f);
-    ImU32 cornerCol   = ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, cornerAlpha));
+    float cornerAlpha = 0.20f + 0.10f * std::sin(gTime * 0.8f);
+    ImVec4 acBase = Accent();
+    ImU32 cornerCol = ImGui::ColorConvertFloat4ToU32(ImVec4(acBase.x, acBase.y, acBase.z, cornerAlpha));
     dl->AddLine(winPos,                                ImVec2(winPos.x + cornerLen, winPos.y),           cornerCol, 1.5f);
     dl->AddLine(winPos,                                ImVec2(winPos.x, winPos.y + cornerLen),           cornerCol, 1.5f);
     dl->AddLine(ImVec2(winPos.x + cx, winPos.y),       ImVec2(winPos.x + cx - cornerLen, winPos.y),      cornerCol, 1.5f);
@@ -436,29 +487,26 @@ static void RenderHome() {
     dl->AddLine(ImVec2(winPos.x + cx, winPos.y + cy),  ImVec2(winPos.x + cx - cornerLen, winPos.y + cy), cornerCol, 1.5f);
     dl->AddLine(ImVec2(winPos.x + cx, winPos.y + cy),  ImVec2(winPos.x + cx, winPos.y + cy - cornerLen), cornerCol, 1.5f);
 
-    ImGui::Dummy(ImVec2(0, 19));
-    DrawLockIcon(dl, ImVec2(winPos.x + cx * 0.5f, winPos.y + 62.0f), 3.3f);
     ImGui::Dummy(ImVec2(0, 60));
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.05f, 0.05f, 0.05f, 1.0f));
-    TextCentered("XOR Cipher Tool", cx);
+    ImGui::PushFont(gTitleFont);
+    ImGui::PushStyleColor(ImGuiCol_Text, Accent());
+    TextCentered("File Encryption Tool", cx);
     ImGui::PopStyleColor();
-    ImGui::Dummy(ImVec2(0, 2));
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.35f, 0.35f, 0.35f, 1.0f));
-    TextCentered("File Encryption & Decryption", cx);
+    ImGui::PopFont();
+    ImGui::Dummy(ImVec2(0, 6));
+    ImGui::PushStyleColor(ImGuiCol_Text, AccentDim());
+    TextCentered("Image & Text File Encryption and Decryption", cx);
     ImGui::PopStyleColor();
     ImGui::Dummy(ImVec2(0, 5));
 
     ImVec2 hexPos = ImGui::GetCursorScreenPos();
     float hexW = std::min(cx * 0.6f, 510.0f);
-    DrawHexStream(dl, ImVec2(hexPos.x + (cx - hexW) * 0.5f, hexPos.y), hexW, gTime, 0.12f);
+    DrawHexStream(dl, ImVec2(hexPos.x + (cx - hexW) * 0.5f, hexPos.y), hexW, gTime, 0.25f);
     ImGui::Dummy(ImVec2(0, 26));
 
     float bw = 390.0f, bh = 62.0f;
     ImGui::SetCursorPosX((cx - bw) * 0.5f);
-    ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.10f, 0.10f, 0.10f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.20f, 0.20f, 0.20f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.30f, 0.30f, 0.30f, 1.0f));
     if (CoffeeButton("[ + ]  Encrypt", ImVec2(bw, bh))) {
         gTargetPage = Page::Encrypt;
         gEncFilePath.clear();
@@ -468,119 +516,128 @@ static void RenderHome() {
         memset(gEncContent, 0, sizeof(gEncContent));
         gShowEncKey = false;
     }
-    ImGui::PopStyleColor(3);
     ImGui::Dummy(ImVec2(0, 12));
     ImGui::SetCursorPosX((cx - bw) * 0.5f);
-    ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.35f, 0.35f, 0.35f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.45f, 0.45f, 0.45f, 1.0f));
     if (CoffeeButton("[ - ]  Decrypt", ImVec2(bw, bh))) {
         gTargetPage = Page::Decrypt;
         gDecFileList.clear(); gDecSelected = -1; gDecResult.clear();
         memset(gDecKey, 0, sizeof(gDecKey));
         gShowDecKey = false;
     }
-    ImGui::PopStyleColor(3);
     ImGui::Dummy(ImVec2(0, 29));
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.50f, 0.50f, 0.50f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_Text, AccentSub());
     TextCentered(".txt  |  .jpg  |  .jpeg  |  .png", cx);
+    ImGui::PopStyleColor();
+
+    // Theme toggle - bottom right
+    ImGui::SetCursorPos(ImVec2(cx - 180, cy - 37));
+    ImGui::PushStyleColor(ImGuiCol_Text, AccentSub());
+    if (ImGui::SmallButton(gDarkMode ? "[ Dark Mode ]" : "[ Light Mode ]")) {
+        gDarkMode = !gDarkMode;
+        ApplyTheme();
+    }
     ImGui::PopStyleColor();
 }
 
 static void RenderEncrypt() {
+    // === HEADER ===
     if (gProcessing) ImGui::BeginDisabled();
     if (CoffeeButton("<  Back")) gTargetPage = Page::Home;
     if (gProcessing) ImGui::EndDisabled();
     ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.05f, 0.05f, 0.05f, 1.0f));
-    ImGui::Text("Encrypt");
-    ImGui::PopStyleColor();
-    ImGui::Separator(); ImGui::Dummy(ImVec2(0, 7));
+    {
+        ImGui::PushStyleColor(ImGuiCol_Text, Accent());
+        float tw = ImGui::CalcTextSize("ENCRYPT").x;
+        ImGui::SetCursorPosX(ImGui::GetContentRegionAvail().x - tw + ImGui::GetCursorPosX());
+        ImGui::Text("ENCRYPT");
+        ImGui::PopStyleColor();
+    }
+    ImGui::Separator();
+    ImGui::Dummy(ImVec2(0, 8));
 
-    ImGui::Text("File type");
-    int prevEncType = gEncFileType;
-    ImGui::RadioButton("Text File", &gEncFileType, 0); ImGui::SameLine();
-    ImGui::RadioButton("Image File", &gEncFileType, 1);
-    if (gEncFileType != prevEncType) gEncSavePath.clear();
-    ImGui::Dummy(ImVec2(0, 5));
-    ImGui::TextDisabled("Tip: drag and drop a .txt, .jpg, .jpeg, or .png file into the app window.");
-    ImGui::Dummy(ImVec2(0, 5));
-
-    ImGui::Text("Cipher");
-    ImGui::RadioButton("XOR", &gEncCipherMethod, 0); ImGui::SameLine();
-    ImGui::RadioButton("AES-256", &gEncCipherMethod, 1);
-    ImGui::Dummy(ImVec2(0, 7));
-
+    // === // CONFIGURATION ===
+    SectionLabel("CONFIGURATION");
+    {
+        int prevEncType = gEncFileType;
+        ImGui::Text("Type"); ImGui::SameLine(80);
+        ImGui::RadioButton("Text", &gEncFileType, 0); ImGui::SameLine();
+        ImGui::RadioButton("Image", &gEncFileType, 1);
+        if (gEncFileType != prevEncType) gEncSavePath.clear();
+        ImGui::Text("Cipher"); ImGui::SameLine(80);
+        ImGui::RadioButton("XOR", &gEncCipherMethod, 0); ImGui::SameLine();
+        ImGui::RadioButton("AES-256", &gEncCipherMethod, 1);
+    }
     if (gEncFileType == 0) {
-        ImGui::Text("Source");
         int prevTextMode = gEncTextMode;
-        ImGui::RadioButton("Select existing file", &gEncTextMode, 0); ImGui::SameLine();
-        ImGui::RadioButton("Type new content", &gEncTextMode, 1);
+        ImGui::Dummy(ImVec2(0, 4));
+        ImGui::Text("Source"); ImGui::SameLine(80);
+        ImGui::RadioButton("File", &gEncTextMode, 0); ImGui::SameLine();
+        ImGui::RadioButton("New Content", &gEncTextMode, 1);
         if (gEncTextMode != prevTextMode) gEncSavePath.clear();
-        ImGui::Dummy(ImVec2(0, 5));
-        if (gEncTextMode == 0) {
-            if (CoffeeButton("Browse...")) {
-                const char* filters[] = { "*.txt" };
-                const char* path = tinyfd_openFileDialog("Select text file", "", 1, filters, "Text files", 0);
-                if (path) {
-                    gEncFilePath = path;
-                    gEncSavePath.clear();
-                }
-            }
-            ImGui::SameLine();
-            if (!gEncFilePath.empty()) ImGui::TextWrapped("%s", gEncFilePath.c_str());
-            else ImGui::TextDisabled("No file selected");
-        } else {
-            ImGui::Text("Filename (without .txt)");
-            ImGui::SetNextItemWidth(-1);
-            ImGui::InputText("##encfname", gEncFilename, sizeof(gEncFilename));
-            ImGui::Text("Content");
-            ImGui::SetNextItemWidth(-1);
-            ImGui::InputTextMultiline("##enccontent", gEncContent, sizeof(gEncContent), ImVec2(-1, 144));
+    }
+    ImGui::Dummy(ImVec2(0, 8));
+
+    // === // INPUT ===
+    SectionLabel("INPUT");
+    if (gEncFileType == 0 && gEncTextMode == 0) {
+        if (CoffeeButton("Browse File...")) {
+            const char* filters[] = { "*.txt" };
+            const char* path = tinyfd_openFileDialog("Select text file", "", 1, filters, "Text files", 0);
+            if (path) { gEncFilePath = path; gEncSavePath.clear(); }
         }
+        ImGui::SameLine();
+        if (!gEncFilePath.empty()) {
+            ImGui::PushStyleColor(ImGuiCol_Text, AccentDim());
+            ImGui::TextWrapped("> %s", gEncFilePath.c_str());
+            ImGui::PopStyleColor();
+        } else {
+            ImGui::TextDisabled("> no file selected");
+        }
+    } else if (gEncFileType == 0 && gEncTextMode == 1) {
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
+        ImGui::InputText("##encfname", gEncFilename, sizeof(gEncFilename));
+        ImGui::SameLine(); ImGui::TextDisabled(".txt");
+        ImGui::SetNextItemWidth(-1);
+        ImGui::InputTextMultiline("##enccontent", gEncContent, sizeof(gEncContent), ImVec2(-1, 160));
     } else {
         if (CoffeeButton("Browse Image...")) {
             const char* filters[] = { "*.jpg", "*.jpeg", "*.png" };
             const char* path = tinyfd_openFileDialog("Select image", "", 3, filters, "Image files", 0);
-            if (path) {
-                gEncFilePath = path;
-                gEncSavePath.clear();
-            }
+            if (path) { gEncFilePath = path; gEncSavePath.clear(); }
         }
         ImGui::SameLine();
-        if (!gEncFilePath.empty()) ImGui::TextWrapped("%s", gEncFilePath.c_str());
-        else ImGui::TextDisabled("No image selected");
-
-        if (gEncFileType == 1 && !gEncFilePath.empty()) {
+        if (!gEncFilePath.empty()) {
+            ImGui::PushStyleColor(ImGuiCol_Text, AccentDim());
+            ImGui::TextWrapped("> %s", gEncFilePath.c_str());
+            ImGui::PopStyleColor();
+        } else {
+            ImGui::TextDisabled("> no image selected");
+        }
+        if (!gEncFilePath.empty()) {
             LoadPreviewTexture(gEncFilePath, gPreviewTexture, gPreviewW, gPreviewH, gPreviewPath);
             RenderImagePreview(gPreviewTexture, gPreviewW, gPreviewH);
         }
     }
+    ImGui::Dummy(ImVec2(0, 8));
 
-    ImGui::Dummy(ImVec2(0, 7));
-
-    ImGui::Text("Encryption Key");
+    // === // KEY ===
+    SectionLabel("KEY");
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 80);
     ImGui::InputText("##enckey", gEncKey, sizeof(gEncKey),
         gShowEncKey ? ImGuiInputTextFlags_None : ImGuiInputTextFlags_Password);
     ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
     if (ImGui::SmallButton(gShowEncKey ? "Hide" : "Show")) gShowEncKey = !gShowEncKey;
-    ImGui::PopStyleColor();
+    ImGui::Dummy(ImVec2(0, 4));
+    ImGui::TextDisabled("// drag & drop supported files into this window");
     ImGui::Dummy(ImVec2(0, 12));
 
-    float bw = 330.0f;
-    ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x - bw) * 0.5f);
-    ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.10f, 0.10f, 0.10f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.20f, 0.20f, 0.20f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.30f, 0.30f, 0.30f, 1.0f));
+    // === ACTION ===
+    float bw = ImGui::GetContentRegionAvail().x;
     if (gProcessing && gOpType == OpType::Encrypt) {
-        ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x - bw) * 0.5f);
-        ImGui::ProgressBar(gOpProgress.load(), ImVec2(bw, 29));
-        ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x - bw) * 0.5f);
+        ImGui::ProgressBar(gOpProgress.load(), ImVec2(bw, 32));
         ImGui::TextDisabled("Encrypting...");
-    } else if (!gProcessing && CoffeeButton("Encrypt Now", ImVec2(bw, 58))) {
+    } else if (!gProcessing && CoffeeButton(">>>  ENCRYPT NOW  <<<", ImVec2(bw, 52))) {
         std::string key(gEncKey);
         if (key.empty()) {
             PushToast("Enter an encryption key.", true);
@@ -603,8 +660,7 @@ static void RenderEncrypt() {
                 savePath = PickEncryptSavePath(gEncFileType, gEncTextMode, gEncFilePath, gEncFilename);
             }
             if (savePath.empty()) {
-                PushToast("Encryption cancelled: no save location selected.", true);
-                ImGui::PopStyleColor(3);
+                PushToast("Encryption cancelled.", true);
                 return;
             }
             gProcessing = true;
@@ -625,87 +681,86 @@ static void RenderEncrypt() {
             });
         }
     }
-    ImGui::PopStyleColor(3);
 }
 
 static void RenderDecrypt() {
+    // === HEADER ===
     if (gProcessing) ImGui::BeginDisabled();
     if (CoffeeButton("<  Back")) gTargetPage = Page::Home;
     if (gProcessing) ImGui::EndDisabled();
     ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.05f, 0.05f, 0.05f, 1.0f));
-    ImGui::Text("Decrypt");
-    ImGui::PopStyleColor();
-    ImGui::Separator(); ImGui::Dummy(ImVec2(0, 7));
-
-    ImGui::Text("File type");
-    int prevType = gDecFileType;
-    ImGui::RadioButton("Text File##d", &gDecFileType, 0); ImGui::SameLine();
-    ImGui::RadioButton("Image File##d", &gDecFileType, 1);
-    if (gDecFileType != prevType) {
-        gDecFileList.clear();
-        gDecSelected = -1;
-        gDecResult.clear();
-        gDecDirectFilePath.clear();
-        gDecSavePath.clear();
+    {
+        ImGui::PushStyleColor(ImGuiCol_Text, Accent());
+        float tw = ImGui::CalcTextSize("DECRYPT").x;
+        ImGui::SetCursorPosX(ImGui::GetContentRegionAvail().x - tw + ImGui::GetCursorPosX());
+        ImGui::Text("DECRYPT");
+        ImGui::PopStyleColor();
     }
-    ImGui::Dummy(ImVec2(0, 5));
-    ImGui::TextDisabled("Tip: drag and drop an encrypted file into the app window.");
-    ImGui::Dummy(ImVec2(0, 5));
+    ImGui::Separator();
+    ImGui::Dummy(ImVec2(0, 8));
 
-    ImGui::Text("Cipher");
-    ImGui::RadioButton("XOR##d", &gDecCipherMethod, 0); ImGui::SameLine();
-    ImGui::RadioButton("AES-256##d", &gDecCipherMethod, 1);
-    ImGui::Dummy(ImVec2(0, 5));
+    // === // CONFIGURATION ===
+    SectionLabel("CONFIGURATION");
+    {
+        int prevType = gDecFileType;
+        ImGui::Text("Type"); ImGui::SameLine(80);
+        ImGui::RadioButton("Text##d", &gDecFileType, 0); ImGui::SameLine();
+        ImGui::RadioButton("Image##d", &gDecFileType, 1);
+        ImGui::Text("Cipher"); ImGui::SameLine(80);
+        ImGui::RadioButton("XOR##d", &gDecCipherMethod, 0); ImGui::SameLine();
+        ImGui::RadioButton("AES-256##d", &gDecCipherMethod, 1);
+        if (gDecFileType != prevType) {
+            gDecFileList.clear(); gDecSelected = -1;
+            gDecResult.clear(); gDecDirectFilePath.clear(); gDecSavePath.clear();
+        }
+    }
+    ImGui::Dummy(ImVec2(0, 8));
 
+    // === // FILE ===
+    SectionLabel("FILE");
+    if (!gDecDirectFilePath.empty()) {
+        ImGui::PushStyleColor(ImGuiCol_Text, AccentDim());
+        ImGui::TextWrapped("> %s", gDecDirectFilePath.c_str());
+        ImGui::PopStyleColor();
+        if (ImGui::SmallButton("Clear")) gDecDirectFilePath.clear();
+        ImGui::Dummy(ImVec2(0, 4));
+    }
     if (CoffeeButton("Refresh List")) {
         gDecFileList = (gDecFileType == 0) ? listEncryptedTextFiles() : listEncryptedImageFiles();
         gDecSelected = -1;
         gDecDirectFilePath.clear();
     }
-    ImGui::Dummy(ImVec2(0, 5));
-
-    if (!gDecDirectFilePath.empty()) {
-        ImGui::Text("Selected dropped file:");
-        ImGui::TextWrapped("%s", gDecDirectFilePath.c_str());
-        if (ImGui::SmallButton("Use list selection instead")) gDecDirectFilePath.clear();
-        ImGui::Dummy(ImVec2(0, 5));
-    }
+    ImGui::SameLine();
+    ImGui::TextDisabled("// or drag & drop encrypted files");
+    ImGui::Dummy(ImVec2(0, 4));
 
     if (gDecFileList.empty()) {
-        ImGui::TextDisabled("No encrypted files found. Click Refresh.");
+        ImGui::TextDisabled("> no encrypted files found");
     } else {
-        ImGui::Text("Select file to decrypt:");
-        ImGui::BeginChild("##filelist", ImVec2(-1, 168), true);
+        ImGui::BeginChild("##filelist", ImVec2(-1, 145), true);
         for (int i = 0; i < (int)gDecFileList.size(); ++i) {
             if (ImGui::Selectable(gDecFileList[i].c_str(), gDecSelected == i))
                 gDecSelected = i;
         }
         ImGui::EndChild();
     }
+    ImGui::Dummy(ImVec2(0, 8));
 
-    ImGui::Dummy(ImVec2(0, 7));
-    ImGui::Text("Decryption Key");
+    // === // KEY ===
+    SectionLabel("KEY");
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 80);
     ImGui::InputText("##deckey", gDecKey, sizeof(gDecKey),
         gShowDecKey ? ImGuiInputTextFlags_None : ImGuiInputTextFlags_Password);
     ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
     if (ImGui::SmallButton(gShowDecKey ? "Hide##d" : "Show##d")) gShowDecKey = !gShowDecKey;
-    ImGui::PopStyleColor();
     ImGui::Dummy(ImVec2(0, 12));
 
-    float bw = 330.0f;
-    ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x - bw) * 0.5f);
-    ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.35f, 0.35f, 0.35f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.45f, 0.45f, 0.45f, 1.0f));
+    // === ACTION ===
+    float bw = ImGui::GetContentRegionAvail().x;
     if (gProcessing && (gOpType == OpType::DecryptText || gOpType == OpType::DecryptImage)) {
-        ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x - bw) * 0.5f);
-        ImGui::ProgressBar(gOpProgress.load(), ImVec2(bw, 29));
-        ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x - bw) * 0.5f);
+        ImGui::ProgressBar(gOpProgress.load(), ImVec2(bw, 32));
         ImGui::TextDisabled("Decrypting...");
-    } else if (!gProcessing && CoffeeButton("Decrypt Now", ImVec2(bw, 58))) {
+    } else if (!gProcessing && CoffeeButton("<<<  DECRYPT NOW  >>>", ImVec2(bw, 52))) {
         std::string key(gDecKey);
         if (key.empty()) {
             PushToast("Enter a decryption key.", true);
@@ -728,8 +783,7 @@ static void RenderDecrypt() {
                     savePath = PickDecryptSavePath(fullPath, gDecFileType == 1);
                 }
                 if (savePath.empty()) {
-                    PushToast("Decryption cancelled: no save location selected.", true);
-                    ImGui::PopStyleColor(3);
+                    PushToast("Decryption cancelled.", true);
                     return;
                 }
                 gProcessing = true;
@@ -749,17 +803,18 @@ static void RenderDecrypt() {
             }
         }
     }
-    ImGui::PopStyleColor(3);
 
+    // === // OUTPUT ===
     if (gDecFileType == 0 && !gDecResult.empty()) {
-        ImGui::Dummy(ImVec2(0, 12)); ImGui::Separator();
-        ImGui::Text("Decrypted Content:");
-        ImGui::BeginChild("##decpreview", ImVec2(-1, 168), true);
+        ImGui::Dummy(ImVec2(0, 10));
+        SectionLabel("OUTPUT");
+        ImGui::BeginChild("##decpreview", ImVec2(-1, 160), true);
         ImGui::TextWrapped("%s", gDecResult.c_str());
         ImGui::EndChild();
     }
-
     if (gDecFileType == 1 && gDecPreviewTexture != 0) {
+        ImGui::Dummy(ImVec2(0, 10));
+        SectionLabel("OUTPUT");
         RenderImagePreview(gDecPreviewTexture, gDecPreviewW, gDecPreviewH);
     }
 }
@@ -772,7 +827,7 @@ int main() {
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
     glfwWindowHint(GLFW_SAMPLES, 4);
 
-    GLFWwindow* window = glfwCreateWindow(1350, 900, "XOR Cipher Tool", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(1350, 900, "File Encryption Tool", nullptr, nullptr);
     if (!window) { glfwTerminate(); return 1; }
     glfwMakeContextCurrent(window);
     glfwSetDropCallback(window, GLFWDropCallback);
@@ -787,10 +842,12 @@ int main() {
     ImFontConfig fontCfg; fontCfg.SizePixels = 22.0f;
     io.Fonts->AddFontDefault(&fontCfg);
 
-    ApplyCoffeeTheme();
+    ImFontConfig titleCfg; titleCfg.SizePixels = 42.0f;
+    gTitleFont = io.Fonts->AddFontDefault(&titleCfg);
+
+    ApplyTheme();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
-    glClearColor(0.97f, 0.97f, 0.97f, 1.0f);
 
     while (!glfwWindowShouldClose(window)) {
         // Smart frame pacing: only spin at full rate when animating
@@ -836,6 +893,7 @@ int main() {
         RenderToasts();
 
         ImGui::Render();
+        { ImVec4 bg = gDarkMode ? ImVec4(0.05f,0.05f,0.07f,1.f) : ImVec4(0.97f,0.97f,0.97f,1.f); glClearColor(bg.x,bg.y,bg.z,bg.w); }
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
