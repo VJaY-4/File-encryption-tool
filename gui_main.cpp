@@ -103,18 +103,20 @@ static void PushToast(const std::string& msg, bool isError = false) {
 
 static void RenderToasts() {
     float y = 20.0f;
-    int idx = 0;
-    for (auto it = gToasts.begin(); it != gToasts.end(); ) {
-        it->timer -= ImGui::GetIO().DeltaTime;
-        if (it->timer <= 0.0f) { it = gToasts.erase(it); continue; }
-        float elapsed = 3.5f - it->timer;
-        float alpha = std::min({1.0f, elapsed / 0.25f, it->timer});
-        ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 20, y), 0, ImVec2(1.0f, 0.0f));
+    float dt = ImGui::GetIO().DeltaTime;
+    float dispX = ImGui::GetIO().DisplaySize.x;
+    for (int idx = 0; idx < (int)gToasts.size(); ++idx) {
+        auto& t = gToasts[idx];
+        t.timer -= dt;
+        if (t.timer <= 0.0f) continue;
+        float elapsed = 3.5f - t.timer;
+        float alpha = std::min({1.0f, elapsed / 0.25f, t.timer});
+        ImGui::SetNextWindowPos(ImVec2(dispX - 20, y), 0, ImVec2(1.0f, 0.0f));
         ImGui::SetNextWindowBgAlpha(alpha * 0.88f);
-        char label[32]; snprintf(label, sizeof(label), "##toast%d", idx++);
+        char label[32]; snprintf(label, sizeof(label), "##toast%d", idx);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 15.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(24, 12));
-        ImGui::PushStyleColor(ImGuiCol_WindowBg, it->isError
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, t.isError
             ? ImVec4(0.60f, 0.10f, 0.10f, 1.0f)
             : ImVec4(0.20f, 0.20f, 0.20f, 1.0f));
         ImGui::Begin(label, nullptr,
@@ -123,15 +125,16 @@ static void RenderToasts() {
             ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMove);
         ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-        ImGui::TextUnformatted(it->message.c_str());
+        ImGui::TextUnformatted(t.message.c_str());
         ImGui::PopStyleColor();
         ImGui::PopStyleVar();
         y += ImGui::GetWindowHeight() + 8;
         ImGui::End();
         ImGui::PopStyleColor();
         ImGui::PopStyleVar(2);
-        ++it;
     }
+    gToasts.erase(std::remove_if(gToasts.begin(), gToasts.end(),
+        [](const Toast& t) { return t.timer <= 0.0f; }), gToasts.end());
 }
 
 enum class Page { Home, Encrypt, Decrypt };
@@ -377,6 +380,27 @@ static void SectionLabel(const char* label) {
     ImGui::Dummy(ImVec2(0, 4));
 }
 
+static void ThinDivider(float alpha = 0.18f) {
+    ImVec2 p = ImGui::GetCursorScreenPos();
+    float w = ImGui::GetContentRegionAvail().x;
+    ImVec4 ac = Accent();
+    ImGui::GetWindowDrawList()->AddLine(p, ImVec2(p.x + w, p.y),
+        ImGui::ColorConvertFloat4ToU32(ImVec4(ac.x, ac.y, ac.z, alpha)), 1.0f);
+    ImGui::Dummy(ImVec2(0, 1));
+}
+
+static void BeginCard() {
+    ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 8.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(18, 14));
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.94f, 0.94f, 0.94f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.78f, 0.78f, 0.78f, 0.40f));
+}
+
+static void EndCard() {
+    ImGui::PopStyleColor(2);
+    ImGui::PopStyleVar(2);
+}
+
 struct Particle { float x, y, speed, size, alpha; };
 static Particle gParticles[80];
 static bool gParticlesInit = false;
@@ -394,25 +418,28 @@ static void InitParticles(float w, float h) {
 
 static void RenderParticles(ImDrawList* dl, ImVec2 origin, float w, float h) {
     float dt = ImGui::GetIO().DeltaTime;
+    ImVec4 ac = Accent();
+    int wMax = std::max((int)w, 1);
     for (auto& p : gParticles) {
         p.y -= p.speed * dt;
-        if (p.y < -10.0f) { p.y = h + 10.0f; p.x = (float)(rand() % std::max((int)w, 1)); }
-        float flicker = p.alpha + 0.05f * std::sin(p.y * 0.05f);
-        ImVec4 ac = Accent();
+        if (p.y < -10.0f) { p.y = h + 10.0f; p.x = (float)(rand() % wMax); }
+        float flicker = (p.alpha + 0.05f * std::sin(p.y * 0.05f)) * 0.5f;
         dl->AddCircleFilled(ImVec2(origin.x + p.x, origin.y + p.y), p.size,
-            ImGui::ColorConvertFloat4ToU32(ImVec4(ac.x, ac.y, ac.z, flicker * 0.5f)));
+            ImGui::ColorConvertFloat4ToU32(ImVec4(ac.x, ac.y, ac.z, flicker)));
     }
 }
 
 static void DrawHexStream(ImDrawList* dl, ImVec2 pos, float width, float time, float alpha) {
-    const char* hexChars = "0123456789ABCDEF";
+    static const char* hexChars = "0123456789ABCDEF";
     ImVec4 ac = Accent();
     ImU32 col = ImGui::ColorConvertFloat4ToU32(ImVec4(ac.x, ac.y, ac.z, alpha));
-    float spacing = 27.0f;
+    constexpr float spacing = 27.0f;
     int count = (int)(width / spacing);
+    float baseSin = time * 1.2f;
+    int baseIdx = (int)(time * 2.0f);
     for (int i = 0; i < count; ++i) {
-        char ch[2] = { hexChars[((int)(time * 2.0f + i * 3)) % 16], '\0' };
-        dl->AddText(ImVec2(pos.x + i * spacing, pos.y + 1.5f * std::sin(time * 1.2f + i * 0.5f)), col, ch);
+        char ch[2] = { hexChars[(baseIdx + i * 3) & 15], '\0' };
+        dl->AddText(ImVec2(pos.x + i * spacing, pos.y + 1.5f * std::sin(baseSin + i * 0.5f)), col, ch);
     }
 }
 
@@ -484,9 +511,44 @@ static void RenderHome() {
     }
     ImGui::Dummy(ImVec2(0, 29));
 
+    // --- feature card ---
+    {
+        float cardW = std::min(cx * 0.65f, 520.0f);
+        ImGui::SetCursorPosX((cx - cardW) * 0.5f);
+        BeginCard();
+        ImGui::BeginChild("##features", ImVec2(cardW, 0), ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_Borders, ImGuiWindowFlags_NoScrollbar);
+        ImGui::PushStyleColor(ImGuiCol_Text, Accent());
+        ImGui::Text("  Features");
+        ImGui::PopStyleColor();
+        ImGui::Dummy(ImVec2(0, 2));
+        ThinDivider(0.25f);
+        ImGui::Dummy(ImVec2(0, 4));
+        ImGui::PushStyleColor(ImGuiCol_Text, AccentDim());
+        ImGui::BulletText("XOR & AES-256 cipher support");
+        ImGui::BulletText("Text file & image encryption");
+        ImGui::BulletText("Drag & drop file selection");
+        ImGui::BulletText("Native Save As dialogs");
+        ImGui::BulletText("Dark / light theme ready");
+        ImGui::PopStyleColor();
+        ImGui::Dummy(ImVec2(0, 4));
+        ImGui::EndChild();
+        EndCard();
+    }
+    ImGui::Dummy(ImVec2(0, 20));
+
     ImGui::PushStyleColor(ImGuiCol_Text, AccentSub());
     TextCentered(".txt  |  .jpg  |  .jpeg  |  .png", cx);
     ImGui::PopStyleColor();
+
+    // --- footer ---
+    {
+        ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetStyle().WindowPadding.y - ImGui::GetTextLineHeight() - 4);
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.70f, 0.70f, 0.70f, 1.0f));
+        ImGui::SetWindowFontScale(0.70f);
+        TextCentered("v1.0   |   C++17   |   OpenGL 3.3   |   Dear ImGui", cx);
+        ImGui::SetWindowFontScale(1.0f);
+        ImGui::PopStyleColor();
+    }
 }
 
 static void RenderEncrypt() {
@@ -509,6 +571,8 @@ static void RenderEncrypt() {
     ImGui::BeginChild("##enc_scroll", ImVec2(0, 0), false);
 
     // === // CONFIGURATION ===
+    BeginCard();
+    ImGui::BeginChild("##enc_cfg_card", ImVec2(-1, 0), ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_Borders, ImGuiWindowFlags_NoScrollbar);
     SectionLabel("CONFIGURATION");
     {
         int prevEncType = gEncFileType;
@@ -528,9 +592,15 @@ static void RenderEncrypt() {
         ImGui::RadioButton("New Content", &gEncTextMode, 1);
         if (gEncTextMode != prevTextMode) gEncSavePath.clear();
     }
-    ImGui::Dummy(ImVec2(0, 8));
+    ImGui::EndChild();
+    EndCard();
+    ImGui::Dummy(ImVec2(0, 10));
+    ThinDivider();
+    ImGui::Dummy(ImVec2(0, 10));
 
     // === // INPUT ===
+    BeginCard();
+    ImGui::BeginChild("##enc_input_card", ImVec2(-1, 0), ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_Borders, ImGuiWindowFlags_NoScrollbar);
     SectionLabel("INPUT");
     if (gEncFileType == 0 && gEncTextMode == 0) {
         if (CoffeeButton("Browse File...")) {
@@ -571,18 +641,34 @@ static void RenderEncrypt() {
             RenderImagePreview(gPreviewTexture, gPreviewW, gPreviewH);
         }
     }
-    ImGui::Dummy(ImVec2(0, 8));
+    ImGui::EndChild();
+    EndCard();
+    ImGui::Dummy(ImVec2(0, 10));
+    ThinDivider();
+    ImGui::Dummy(ImVec2(0, 10));
 
     // === // KEY ===
+    BeginCard();
+    ImGui::BeginChild("##enc_key_card", ImVec2(-1, 0), ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_Borders, ImGuiWindowFlags_NoScrollbar);
     SectionLabel("KEY");
-    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 80);
+    float encInputH = ImGui::GetFrameHeight();
+    ImGui::SetNextItemWidth((ImGui::GetContentRegionAvail().x - 60) * 0.75f);
     ImGui::InputText("##enckey", gEncKey, sizeof(gEncKey),
         gShowEncKey ? ImGuiInputTextFlags_None : ImGuiInputTextFlags_Password);
     ImGui::SameLine();
-    if (ImGui::SmallButton(gShowEncKey ? "Hide" : "Show")) gShowEncKey = !gShowEncKey;
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 4));
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+    ImGui::SetWindowFontScale(0.75f);
+    if (ImGui::Button(gShowEncKey ? "Hide" : "Show", ImVec2(48, encInputH))) gShowEncKey = !gShowEncKey;
+    ImGui::SetWindowFontScale(1.0f);
+    ImGui::PopStyleColor();
+    ImGui::PopStyleVar(2);
     ImGui::Dummy(ImVec2(0, 4));
     ImGui::TextDisabled("// drag & drop supported files into this window");
-    ImGui::Dummy(ImVec2(0, 12));
+    ImGui::EndChild();
+    EndCard();
+    ImGui::Dummy(ImVec2(0, 14));
 
     // === ACTION ===
     float bw = ImGui::GetContentRegionAvail().x;
@@ -658,6 +744,8 @@ static void RenderDecrypt() {
     ImGui::BeginChild("##dec_scroll", ImVec2(0, 0), false);
 
     // === // CONFIGURATION ===
+    BeginCard();
+    ImGui::BeginChild("##dec_cfg_card", ImVec2(-1, 0), ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_Borders, ImGuiWindowFlags_NoScrollbar);
     SectionLabel("CONFIGURATION");
     {
         int prevType = gDecFileType;
@@ -672,9 +760,15 @@ static void RenderDecrypt() {
             gDecResult.clear(); gDecDirectFilePath.clear(); gDecSavePath.clear();
         }
     }
-    ImGui::Dummy(ImVec2(0, 8));
+    ImGui::EndChild();
+    EndCard();
+    ImGui::Dummy(ImVec2(0, 10));
+    ThinDivider();
+    ImGui::Dummy(ImVec2(0, 10));
 
     // === // FILE ===
+    BeginCard();
+    ImGui::BeginChild("##dec_file_card", ImVec2(-1, 0), ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_Borders, ImGuiWindowFlags_NoScrollbar);
     SectionLabel("FILE");
     if (!gDecDirectFilePath.empty()) {
         ImGui::PushStyleColor(ImGuiCol_Text, AccentDim());
@@ -703,16 +797,32 @@ static void RenderDecrypt() {
         }
         ImGui::EndChild();
     }
-    ImGui::Dummy(ImVec2(0, 8));
+    ImGui::EndChild();
+    EndCard();
+    ImGui::Dummy(ImVec2(0, 10));
+    ThinDivider();
+    ImGui::Dummy(ImVec2(0, 10));
 
     // === // KEY ===
+    BeginCard();
+    ImGui::BeginChild("##dec_key_card", ImVec2(-1, 0), ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_Borders, ImGuiWindowFlags_NoScrollbar);
     SectionLabel("KEY");
-    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 80);
+    float decInputH = ImGui::GetFrameHeight();
+    ImGui::SetNextItemWidth((ImGui::GetContentRegionAvail().x - 60) * 0.75f);
     ImGui::InputText("##deckey", gDecKey, sizeof(gDecKey),
         gShowDecKey ? ImGuiInputTextFlags_None : ImGuiInputTextFlags_Password);
     ImGui::SameLine();
-    if (ImGui::SmallButton(gShowDecKey ? "Hide##d" : "Show##d")) gShowDecKey = !gShowDecKey;
-    ImGui::Dummy(ImVec2(0, 12));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 4));
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+    ImGui::SetWindowFontScale(0.75f);
+    if (ImGui::Button(gShowDecKey ? "Hide##d" : "Show##d", ImVec2(48, decInputH))) gShowDecKey = !gShowDecKey;
+    ImGui::SetWindowFontScale(1.0f);
+    ImGui::PopStyleColor();
+    ImGui::PopStyleVar(2);
+    ImGui::EndChild();
+    EndCard();
+    ImGui::Dummy(ImVec2(0, 14));
 
     // === ACTION ===
     float bw = ImGui::GetContentRegionAvail().x;
@@ -767,15 +877,27 @@ static void RenderDecrypt() {
     // === // OUTPUT ===
     if (gDecFileType == 0 && !gDecResult.empty()) {
         ImGui::Dummy(ImVec2(0, 10));
+        ThinDivider();
+        ImGui::Dummy(ImVec2(0, 10));
+        BeginCard();
+        ImGui::BeginChild("##dec_out_card", ImVec2(-1, 0), ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_Borders, ImGuiWindowFlags_NoScrollbar);
         SectionLabel("OUTPUT");
         ImGui::BeginChild("##decpreview", ImVec2(-1, 160), true);
         ImGui::TextWrapped("%s", gDecResult.c_str());
         ImGui::EndChild();
+        ImGui::EndChild();
+        EndCard();
     }
     if (gDecFileType == 1 && gDecPreviewTexture != 0) {
         ImGui::Dummy(ImVec2(0, 10));
+        ThinDivider();
+        ImGui::Dummy(ImVec2(0, 10));
+        BeginCard();
+        ImGui::BeginChild("##dec_imgout_card", ImVec2(-1, 0), ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_Borders, ImGuiWindowFlags_NoScrollbar);
         SectionLabel("OUTPUT");
         RenderImagePreview(gDecPreviewTexture, gDecPreviewW, gDecPreviewH);
+        ImGui::EndChild();
+        EndCard();
     }
 
     ImGui::EndChild(); // end dec_scroll
@@ -810,6 +932,8 @@ int main() {
     ApplyTheme();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
+
+    glClearColor(0.97f, 0.97f, 0.97f, 1.0f);
 
     while (!glfwWindowShouldClose(window)) {
         // Smart frame pacing: only spin at full rate when animating
@@ -855,7 +979,6 @@ int main() {
         RenderToasts();
 
         ImGui::Render();
-        { glClearColor(0.97f, 0.97f, 0.97f, 1.0f); }
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
