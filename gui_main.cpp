@@ -490,7 +490,7 @@ static void RenderHome() {
 }
 
 static void RenderEncrypt() {
-    // === HEADER ===
+    // === HEADER (pinned) ===
     if (gProcessing) ImGui::BeginDisabled();
     if (CoffeeButton("<  Back")) gTargetPage = Page::Home;
     if (gProcessing) ImGui::EndDisabled();
@@ -503,7 +503,10 @@ static void RenderEncrypt() {
         ImGui::PopStyleColor();
     }
     ImGui::Separator();
-    ImGui::Dummy(ImVec2(0, 8));
+    ImGui::Dummy(ImVec2(0, 4));
+
+    // === Scrollable body ===
+    ImGui::BeginChild("##enc_scroll", ImVec2(0, 0), false);
 
     // === // CONFIGURATION ===
     SectionLabel("CONFIGURATION");
@@ -610,6 +613,7 @@ static void RenderEncrypt() {
             }
             if (savePath.empty()) {
                 PushToast("Encryption cancelled.", true);
+                ImGui::EndChild(); // end enc_scroll before early return
                 return;
             }
             gProcessing = true;
@@ -630,10 +634,12 @@ static void RenderEncrypt() {
             });
         }
     }
+
+    ImGui::EndChild(); // end enc_scroll
 }
 
 static void RenderDecrypt() {
-    // === HEADER ===
+    // === HEADER (pinned) ===
     if (gProcessing) ImGui::BeginDisabled();
     if (CoffeeButton("<  Back")) gTargetPage = Page::Home;
     if (gProcessing) ImGui::EndDisabled();
@@ -646,7 +652,10 @@ static void RenderDecrypt() {
         ImGui::PopStyleColor();
     }
     ImGui::Separator();
-    ImGui::Dummy(ImVec2(0, 8));
+    ImGui::Dummy(ImVec2(0, 4));
+
+    // === Scrollable body ===
+    ImGui::BeginChild("##dec_scroll", ImVec2(0, 0), false);
 
     // === // CONFIGURATION ===
     SectionLabel("CONFIGURATION");
@@ -686,7 +695,8 @@ static void RenderDecrypt() {
     if (gDecFileList.empty()) {
         ImGui::TextDisabled("> no encrypted files found");
     } else {
-        ImGui::BeginChild("##filelist", ImVec2(-1, 145), true);
+        float listH = std::min(145.0f, (float)gDecFileList.size() * ImGui::GetTextLineHeightWithSpacing() + 12.0f);
+        ImGui::BeginChild("##filelist", ImVec2(-1, listH), true);
         for (int i = 0; i < (int)gDecFileList.size(); ++i) {
             if (ImGui::Selectable(gDecFileList[i].c_str(), gDecSelected == i))
                 gDecSelected = i;
@@ -733,6 +743,7 @@ static void RenderDecrypt() {
                 }
                 if (savePath.empty()) {
                     PushToast("Decryption cancelled.", true);
+                    ImGui::EndChild(); // end dec_scroll before early return
                     return;
                 }
                 gProcessing = true;
@@ -766,6 +777,8 @@ static void RenderDecrypt() {
         SectionLabel("OUTPUT");
         RenderImagePreview(gDecPreviewTexture, gDecPreviewW, gDecPreviewH);
     }
+
+    ImGui::EndChild(); // end dec_scroll
 }
 
 int main() {

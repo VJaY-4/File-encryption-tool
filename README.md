@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🔐 File Encryption Tool
+# File Encryption Tool
 
 ### Lightweight File Encryption Suite for Windows
 
