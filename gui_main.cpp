@@ -1,3 +1,5 @@
+// Forward declaration for background particles
+
 /*
  * gui_main.cpp – Dear ImGui GUI for XOR Cipher Encryption/Decryption Tool
  * Theme: White / black, rounded, minimalistic, subtle animations.
@@ -429,6 +431,16 @@ static void RenderParticles(ImDrawList* dl, ImVec2 origin, float w, float h) {
     }
 }
 
+// Renders the animated background particles on all pages
+static void RenderBackgroundParticles() {
+    ImVec2 avail = ImGui::GetContentRegionAvail();
+    ImVec2 winPos = ImGui::GetCursorScreenPos();
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    float w = avail.x, h = avail.y;
+    if (!gParticlesInit || w < 10.0f || h < 10.0f) InitParticles(w, h);
+    RenderParticles(dl, winPos, w, h);
+}
+
 static void DrawHexStream(ImDrawList* dl, ImVec2 pos, float width, float time, float alpha) {
     static const char* hexChars = "0123456789ABCDEF";
     ImVec4 ac = Accent();
@@ -444,6 +456,7 @@ static void DrawHexStream(ImDrawList* dl, ImVec2 pos, float width, float time, f
 }
 
 static void RenderHome() {
+    RenderBackgroundParticles();
     ImVec2 avail  = ImGui::GetContentRegionAvail();
     float cx = avail.x, cy = avail.y;
     ImVec2 winPos = ImGui::GetCursorScreenPos();
@@ -451,13 +464,6 @@ static void RenderHome() {
 
     static float gTime = 0.0f;
     gTime += ImGui::GetIO().DeltaTime;
-
-    static float lastW = 0, lastH = 0;
-    if (!gParticlesInit || cx != lastW || cy != lastH) {
-        InitParticles(cx, cy);
-        lastW = cx; lastH = cy;
-    }
-    RenderParticles(dl, winPos, cx, cy);
 
     float cornerLen   = 60.0f;
     float cornerAlpha = 0.20f + 0.10f * std::sin(gTime * 0.8f);
@@ -552,6 +558,7 @@ static void RenderHome() {
 }
 
 static void RenderEncrypt() {
+    RenderBackgroundParticles();
     // === HEADER (pinned) ===
     if (gProcessing) ImGui::BeginDisabled();
     if (CoffeeButton("<  Back")) gTargetPage = Page::Home;
@@ -725,6 +732,7 @@ static void RenderEncrypt() {
 }
 
 static void RenderDecrypt() {
+    RenderBackgroundParticles();
     // === HEADER (pinned) ===
     if (gProcessing) ImGui::BeginDisabled();
     if (CoffeeButton("<  Back")) gTargetPage = Page::Home;
@@ -923,11 +931,18 @@ int main() {
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
-    ImFontConfig fontCfg; fontCfg.SizePixels = 22.0f;
-    io.Fonts->AddFontDefault(&fontCfg);
+    const char* fontPath = "fonts/Orbitron.ttf";
+    ImFont* mainFont = io.Fonts->AddFontFromFileTTF(fontPath, 20.0f);
+    if (!mainFont) {
+        ImFontConfig fontCfg; fontCfg.SizePixels = 22.0f;
+        io.Fonts->AddFontDefault(&fontCfg);
+    }
 
-    ImFontConfig titleCfg; titleCfg.SizePixels = 42.0f;
-    gTitleFont = io.Fonts->AddFontDefault(&titleCfg);
+    gTitleFont = io.Fonts->AddFontFromFileTTF(fontPath, 38.0f);
+    if (!gTitleFont) {
+        ImFontConfig titleCfg; titleCfg.SizePixels = 42.0f;
+        gTitleFont = io.Fonts->AddFontDefault(&titleCfg);
+    }
 
     ApplyTheme();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -941,6 +956,14 @@ int main() {
                       || (gTargetPage != gCurrentPage)
                       || gProcessing
                       || !gToasts.empty();
+
+        // Minimize CPU usage if window is minimized or not visible
+        int w, h; glfwGetFramebufferSize(window, &w, &h);
+        if (w < 50 || h < 50) {
+            glfwWaitEventsTimeout(0.2);
+            continue;
+        }
+
         if (animating)
             glfwPollEvents();
         else
@@ -959,7 +982,6 @@ int main() {
         }
 
         ImGui::SetNextWindowPos(ImVec2(0, 0));
-        int w, h; glfwGetFramebufferSize(window, &w, &h);
         ImGui::SetNextWindowSize(ImVec2((float)w, (float)h));
         ImGui::PushStyleVar(ImGuiStyleVar_Alpha, gPageAlpha);
         ImGui::Begin("##main", nullptr,

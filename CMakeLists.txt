@@ -1,5 +1,12 @@
 cmake_minimum_required(VERSION 3.16)
+
 project(FileEncryptionTool LANGUAGES C CXX)
+
+# Set default build type to Release for optimization
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif()
+
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -75,6 +82,6 @@ endif()
 if(MSVC)
     target_compile_options(encrypt_tool_gui PRIVATE /W4)
 else()
-    target_compile_options(encrypt_tool_gui PRIVATE -Wall -Wextra)
+    target_compile_options(encrypt_tool_gui PRIVATE -Wall -Wextra -O3 -march=native)
     target_link_options(encrypt_tool_gui PRIVATE -mwindows)
 endif()

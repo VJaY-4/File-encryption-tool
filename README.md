@@ -42,7 +42,7 @@ Most encryption tools are either command-line only or bloated with features you 
 
 | Feature | Details |
 |---|---|
-| **GUI Application** | Minimalistic desktop app with floating particles, card-based layout, smooth page transitions, native file dialogs |
+| **GUI Application** | Minimalistic cyber/robo-themed desktop app with Orbitron font, floating animated particles on all pages, card-based layout, smooth page transitions, and native file dialogs |
 | **Drag & Drop Input** | Drop supported files directly into the app window on Encrypt/Decrypt pages for faster selection |
 | **Save As Prompt** | Clicking Encrypt Now or Decrypt Now automatically opens a native Save As dialog to choose where the output file is saved |
 | **CLI Interface** | Interactive terminal menus, masked key input, colored output — great for scripting |
@@ -59,6 +59,15 @@ Most encryption tools are either command-line only or bloated with features you 
 
 ## Quick Start
 
+---
+**What's New?**
+
+- **Cyber/Robo UI:** Orbitron font, minimalistic design, smooth animations, and black floating elements on a white background for a futuristic look.
+- **Animated Particles:** Floating background particles now appear on all pages (Home, Encrypt, Decrypt) for a consistent, dynamic experience.
+- **Performance Optimized:** Smart frame pacing, idle/minimized window detection, and Release-mode build with advanced compiler optimizations for smooth operation even on low-end hardware.
+
+---
+
 ### Prerequisites
 
 - C++17 compiler (GCC, Clang, or MSVC)
@@ -74,17 +83,21 @@ cd File-encryption-tool
 
 **Linux / macOS:**
 ```bash
-cmake -S . -B build
-cmake --build build
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release -j8
 ```
 
 **Windows (MSYS2 / MinGW):**
 ```bash
-cmake -S . -B build -G "MinGW Makefiles"
-cmake --build build
+cmake -S . -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release -j8
 ```
 
 Executables are emitted to the project root for easier double-click launching on Windows.
+
+**Tips:**
+- For best performance, always use the Release build (includes -O3 and -march=native optimizations).
+- If you encounter build issues, delete the `build/` folder and rebuild from scratch.
 
 ### Run
 
@@ -100,7 +113,7 @@ Executables are emitted to the project root for easier double-click launching on
 
 > **CLI-only build** (no CMake needed):
 > ```bash
-> g++ -std=c++17 -Wall -Wextra -Wpedantic -o encrypt_tool main.cpp crypto_core.cpp txt_crypt.cpp img_crypt.cpp utils.cpp -lbcrypt
+> g++ -std=c++17 -Wall -Wextra -Wpedantic -O3 -march=native -o encrypt_tool main.cpp crypto_core.cpp txt_crypt.cpp img_crypt.cpp utils.cpp -lbcrypt
 > ```
 
 ---
