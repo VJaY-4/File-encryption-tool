@@ -16,7 +16,7 @@
 <!-- Replace the path below with your actual screenshot -->
 <img src="screenshot.png" alt="File Encryption Tool – Home Screen" width="720" />
 
-*Clean monochrome light theme by default, with an optional dark mode — toggle anytime.*
+*Clean monochrome light theme with floating particle animations and rounded card UI.*
 
 </div>
 
@@ -26,12 +26,14 @@
 
 Most encryption tools are either command-line only or bloated with features you don't need. **File Encryption Tool** gives you a polished desktop experience in under 2 MB — no installers, no dependencies to hunt down, just build and run.
 
-- **Beautiful GUI** — Dear ImGui-powered interface with dark and light themes, rounded corners, and subtle particle animations.
-- **Dark / Light Mode** — Toggle between a clean white theme (default) and a sleek dark theme.
+- **Beautiful GUI** — Dear ImGui-powered interface with rounded card panels, subtle particle animations, and a clean monochrome aesthetic.
 - **Dual Interface** — Use the graphical app or drop down to the CLI for scripting and automation.
 - **Text & Image Support** — Encrypt `.txt` files and `.jpg`/`.jpeg`/`.png` images with a single key.
 - **Cipher Options** — Choose between **XOR** and **AES-256** in both Encrypt and Decrypt flows.
+- **Drag & Drop** — Drop files directly onto the Encrypt or Decrypt page for instant selection.
+- **Save As Dialog** — Every encrypt/decrypt action opens a native Save As dialog so you control exactly where the output goes.
 - **Double-Layer Image Encryption** — XOR cipher + byte-position scrambling makes encrypted images completely unrecognizable.
+- **Async Processing** — Encryption and decryption run on a background thread with a live progress bar.
 - **Zero Config** — Output folders are created automatically. Just pick a file, enter a key, and go.
 
 ---
@@ -40,14 +42,16 @@ Most encryption tools are either command-line only or bloated with features you 
 
 | Feature | Details |
 |---|---|
-| **GUI Application** | Dark/light themed desktop app with floating particles, smooth page transitions, native file dialogs |
+| **GUI Application** | Minimalistic desktop app with floating particles, card-based layout, smooth page transitions, native file dialogs |
 | **Drag & Drop Input** | Drop supported files directly into the app window on Encrypt/Decrypt pages for faster selection |
 | **Save As Prompt** | Clicking Encrypt Now or Decrypt Now automatically opens a native Save As dialog to choose where the output file is saved |
 | **CLI Interface** | Interactive terminal menus, masked key input, colored output — great for scripting |
 | **Cipher Selection** | Supports both XOR and AES-256 for encryption and decryption |
 | **Text Encryption** | Encrypt/decrypt `.txt` files or create new encrypted content from scratch |
 | **Image Encryption** | Encrypt/decrypt `.jpg`, `.jpeg`, `.png` with dual-layer obfuscation |
-| **Dark / Light Mode** | Toggle between clean monochrome light theme (default) and dark theme at runtime |
+| **Image Preview** | See a live thumbnail of selected images before encrypting, and of decrypted output after decrypting |
+| **Progress Bar** | Real-time progress indicator during encrypt/decrypt operations |
+| **Toast Notifications** | Non-blocking success/error toasts confirm every action |
 | **Key Validation** | Warns on weak keys (< 4 chars) with option to proceed or strengthen |
 | **Overwrite Protection** | Prompts before replacing existing files |
 
@@ -96,7 +100,7 @@ Executables are emitted to the project root for easier double-click launching on
 
 > **CLI-only build** (no CMake needed):
 > ```bash
-> g++ -std=c++17 -Wall -Wextra -Wpedantic -o encrypt_tool main.cpp txt_crypt.cpp img_crypt.cpp utils.cpp
+> g++ -std=c++17 -Wall -Wextra -Wpedantic -o encrypt_tool main.cpp crypto_core.cpp txt_crypt.cpp img_crypt.cpp utils.cpp -lbcrypt
 > ```
 
 ---
@@ -166,17 +170,17 @@ The result is completely unrecognizable. Decryption reverses both steps in order
 
 ```
 ├── gui_main.cpp          GUI application (Dear ImGui + GLFW + OpenGL)
-├── crypto_core.cpp/h     Encryption API (non-interactive, used by GUI)
+├── crypto_core.cpp/h     Encryption API (non-interactive, used by GUI & CLI)
 ├── main.cpp              CLI entry point
-├── txt_crypt.cpp/h       Text file encryption & decryption
-├── img_crypt.cpp/h       Image file encryption & decryption
+├── txt_crypt.cpp/h       Text file encryption & decryption (CLI)
+├── img_crypt.cpp/h       Image file encryption & decryption (CLI)
 ├── utils.cpp/h           Shared utilities (key input, helpers, etc.)
 ├── CMakeLists.txt        Build configuration
 │
 ├── libs/
-│   ├── imgui/            Dear ImGui
+│   ├── imgui/            Dear ImGui (core + GLFW/OpenGL backends)
 │   ├── glfw/             GLFW windowing library
-│   ├── stb_image.h       Image loading
+│   ├── stb_image.h       Image loading (single header)
 │   └── tinyfiledialogs/  Native OS file dialogs
 ```
 
