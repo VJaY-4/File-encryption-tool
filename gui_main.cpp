@@ -1,26 +1,15 @@
-// Forward declaration for background particles
-
-/*
- * gui_main.cpp – Dear ImGui GUI for XOR Cipher Encryption/Decryption Tool
- * Theme: White / black, rounded, minimalistic, subtle animations.
- */
-
+// gui_main.cpp – Dear ImGui GUI for XOR Cipher Encryption/Decryption Tool
 #include "crypto_core.h"
 #include "tinyfiledialogs.h"
-
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-
 #include <GLFW/glfw3.h>
-
 #ifndef GL_MULTISAMPLE
 #define GL_MULTISAMPLE 0x809D
 #endif
-
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-
 #include <string>
 #include <vector>
 #include <cmath>
@@ -30,7 +19,6 @@
 #include <future>
 #include <atomic>
 #include <chrono>
-
 namespace fs = std::filesystem;
 
 static float smoothLerp(float a, float b, float speed) {

@@ -1,15 +1,13 @@
+
 #include "img_crypt.h"
 #include "utils.h"
 #include "crypto_core.h"
-
 #include <iostream>
 #include <filesystem>
 #include <stdexcept>
 #include <algorithm>
 #include <limits>
-
-using namespace std;
-namespace fs = filesystem;
+using namespace std; namespace fs = filesystem;
 
 static string getImagePath() {
     cout << "\n--- Image Location ---\n  1. Enter full path\n  2. Filename in Input Files\nChoice: ";

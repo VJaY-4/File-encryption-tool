@@ -1,15 +1,13 @@
+
 #include "txt_crypt.h"
 #include "utils.h"
-
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <stdexcept>
 #include <filesystem>
 #include <limits>
-
-using namespace std;
-namespace fs = filesystem;
+using namespace std; namespace fs = filesystem;
 
 static void listEncryptedFiles() {
     cout << "\nFiles in '" << ENC_TEXT_DIR << "':\n";

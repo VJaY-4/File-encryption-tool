@@ -1,22 +1,15 @@
-#include "crypto_core.h"
 
+#include "crypto_core.h"
 #include <fstream>
 #include <filesystem>
 #include <stdexcept>
 #include <algorithm>
-
 #ifdef _WIN32
 #include <windows.h>
 #include <bcrypt.h>
 #endif
-
 namespace fs = std::filesystem;
-
-const std::string ENC_TEXT_DIR = "Encrypted Files/Text Files";
-const std::string ENC_IMG_DIR  = "Encrypted Files/Images";
-const std::string DEC_TEXT_DIR = "Decrypted Files/Text Files";
-const std::string DEC_IMG_DIR  = "Decrypted Files/Images";
-const std::string INPUT_DIR    = "Input Files";
+const std::string ENC_TEXT_DIR = "Encrypted Files/Text Files", ENC_IMG_DIR = "Encrypted Files/Images", DEC_TEXT_DIR = "Decrypted Files/Text Files", DEC_IMG_DIR = "Decrypted Files/Images", INPUT_DIR = "Input Files";
 
 void xorCipher(char* buf, size_t len, const std::string& key) {
     if (key.empty()) return;
